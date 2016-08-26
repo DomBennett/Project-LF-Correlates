@@ -25,6 +25,73 @@ epi <- read.csv(file=epi_file)
 epi <- epi[!duplicated(epi$txid), ]
 epi[['txid']] <- as.character(epi[['txid']])
 
+# ADD CATES
+cat('    Searching IUCN for extinction risk categories ....')
+ignr <- NULL  # ignore all DD species
+epi$cate <- NA
+for(i in 1:nrow(epi)) {
+  nms <- getKidNms(epi[i,'txid'])
+  res <- rep(NA, length(nms))
+  names(res) <- nms
+  for(nm in nms) {
+    #cat('Searching [', nms[j], '] ....\n', sep="")
+    cate <- getIUCNCat(nm, token)
+    if(class(cate) == "list" && length(cate[['result']]) > 0) {
+      cate <- cate[['result']][[1]][['category']]
+      if(cate == "DD") {
+        ignr <- c(ignr, nm)
+      } else {
+        res[[nm]] <- cateAsNum(cate)
+      }
+    }
+  }
+  epi[['cate']][i] <- mean(res, na.rm=TRUE)
+}
+cat("Done, found data for [", sum(!is.na(epi[['cate']])), '/',
+    nrow(epi), "].\n", sep="")
+
+# ADD NHABITATS
+cat('    Searching IUCN for nhabitats ....')
+epi[['nhbbts']] <- NA
+for(i in 1:nrow(epi)) {
+  nms <- getKidNms(epi[i,'txid'])
+  nms <- nms[!nms %in% ignr]
+  res <- rep(NA, length(nms))
+  names(res) <- nms
+  for(nm in nms) {
+    hbbts <- getIUCNHbbts(nm, token)
+    if(class(hbbts) == "list" && length(hbbts[['result']]) > 0) {
+      nhbbts <- sum(unlist(lapply(hbbts[['result']],
+                                  function(x) x[['suitability']] == "Suitable")))
+      res[[nm]] <- nhbbts
+    }
+  }
+  epi[['nhbbts']][i] <- mean(res, na.rm=TRUE)
+}
+cat("Done, found data for [", sum(!is.na(epi[['nhbbts']])), '/',
+    nrow(epi), "].\n", sep="")
+
+# ADD NC
+cat('    Searching IUCN for ncountries ....')
+epi[['ncntrs']] <- NA
+for(i in 1:nrow(epi)) {
+  nms <- getKidNms(epi[i,'txid'])
+  nms <- nms[!nms %in% ignr]
+  res <- rep(NA, length(nms))
+  names(res) <- nms
+  for(nm in nms) {
+    cntrs <- getIUCNCntrs(nm, token)
+    if(class(cntrs) == "list" && length(cntrs[['result']]) > 0) {
+      ncntrs <- sum(unlist(lapply(cntrs[['result']],
+                                  function(x) x[['origin']] == "Native")))
+      res[[nm]] <- ncntrs
+    }
+  }
+  epi[['ncntrs']][i] <- mean(res, na.rm=TRUE)
+}
+cat("Done, found data for [", sum(!is.na(epi[['ncntrs']])), '/',
+    nrow(epi), "].\n", sep="")
+
 # HABITAT AND ECOLOGY AS WORDS
 wrds <- vector("list", length=nrow(epi))
 cat('    Searching IUCN for descriptions ....')
@@ -79,30 +146,8 @@ cat('Saving....\n')
 save(epi, hbbts, whbbts, file=file.path(output_dir, 'hbbts.RData'))
 cat('Done.\n')
 
-# ADD CATES
-cat('    Searching IUCN for extinction risk categories ....')
-ignr <- NULL  # ignore all DD species
-for(i in 1:nrow(epi)) {
-  nms <- getKidNms(epi[i,'txid'])
-  res <- list()
-  for(nm in nms) {
-    #cat('Searching [', nms[j], '] ....\n', sep="")
-    cate <- getIUCNCat(nm, token)
-    if(class(cate) == "list" && length(cate[['result']]) > 0) {
-      cate <- cate[['result']][[1]][['category']]
-      if(cate == "DD") {
-        ignr <- c(ignr, nm)
-      } else {
-        res[[nm]] <- cate
-      }
-    }
-  }
-  if(length(res) > 0) {
-    lf_cate[[txid]] <- res
-  }
-}
-if(length(lf_cate) < 10) {
-  cat("    \nToo little living fossil IUCN data for this group!\n")
-  next
-}
-cat("Done, found data for [", length(lf_cate), "].\n", sep="")
+# OUTPUT
+save(epi, file=file.path(output_dir, 'epi.RData'))
+
+# END
+cat(paste0('\nStage `download` finished at [', Sys.time(), ']\n'))

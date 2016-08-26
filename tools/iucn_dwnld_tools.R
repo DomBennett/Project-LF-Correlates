@@ -64,6 +64,32 @@ getIUCNCat <- function(nm, token) {
   res
 }
 
+cateAsNum <- function(cate) {
+  # Convert IUCN redlist category to number
+  if(cate == 'LC') {
+    return(0)
+  }
+  if(cate == 'NT') {
+    return(1)
+  }
+  if(cate == 'VU') {
+    return(2)
+  }
+  if(cate == 'EN') {
+    return(3)
+  }
+  if(cate == 'CR') {
+    return(4)
+  }
+  if(cate == 'EW') {
+    return(5)
+  }
+  if(cate == 'EX') {
+    return(6)
+  }
+  NA
+}
+
 getIUCNNrrtv <- function(nm, token) {
   # Get narrative data for species from IUCN API
   # first make sure nm is html safe

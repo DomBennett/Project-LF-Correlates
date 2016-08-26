@@ -1,0 +1,10 @@
+# RStudio
+*RD*
+*Rproj*
+.Rhistory
+
+# Data
+[0-9]_*/
+
+# IUCN token
+iucn_token.R

@@ -123,15 +123,16 @@ cds <- hbbts <- vector("list", length=nrow(epi))
 cat('    Searching IUCN for habitats ....')
 for(i in 1:nrow(epi)) {
   nms <- getKidNms(epi[i,'txid'])
-  res_h <- res_c <- NULL
+  res_h <- res_c <- list()
+  cc <- 0
   for(nm in nms) {
     hs <- getIUCNHbbts(nm, token)
     if(class(hs) == "list" && length(hs[['result']]) > 0) {
       ss <- sapply(hs[['result']], function(x) x[['suitability']])
       cs <- sapply(hs[['result']], function(x) x[['code']])
       hs <- sapply(hs[['result']], function(x) x[['habitat']])
-      res_h <- c(res_h, hs[ss == "Suitable"])
-      res_c <- c(res_c, cs[ss == "Suitable"])
+      res_h <- c(res_h, list(hs[ss == "Suitable"]))
+      res_c <- c(res_c, list(cs[ss == "Suitable"]))
     }
   }
   if(length(res_h) > 0) {
@@ -143,7 +144,7 @@ whbbts <- which(sapply(hbbts, length) > 0)
 cat("Done, found data for [", length(whbbts), "/",
     length(hbbts), "].\n", sep="")
 cat('Saving....\n')
-save(epi, hbbts, whbbts, file=file.path(output_dir, 'hbbts.RData'))
+save(epi, hbbts, cds, whbbts, file=file.path(output_dir, 'hbbts.RData'))
 cat('Done.\n')
 
 # OUTPUT

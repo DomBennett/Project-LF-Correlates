@@ -17,3 +17,15 @@ ggBinomial <- function(data) {
     theme_bw()
   p
 }
+
+calcProp <- function(hbbt_trm) {
+  # count the proportion of descendent species with one of their suitable habbitats
+  # containing hbbt_trm
+  .test <- function(x) {
+    any(grepl(ht, tolower(x)))
+  }
+  .count <- function(x) {
+    sum(sapply(x, .test))/length(x)
+  }
+  sapply(hbbts, function(x) .count(x))
+}

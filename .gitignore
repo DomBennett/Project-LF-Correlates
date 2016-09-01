@@ -9,3 +9,6 @@
 # IUCN token
 iucn_token.R
 .Rproj.user
+
+# Mac
+.DS_Store

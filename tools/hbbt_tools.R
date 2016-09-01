@@ -18,7 +18,7 @@ ggBinomial <- function(data) {
   p
 }
 
-calcProp <- function(hbbt_trm) {
+calcHbbtProp <- function(hbbt_trm) {
   # count the proportion of descendent species with one of their suitable habbitats
   # containing hbbt_trm
   .test <- function(x) {
@@ -28,4 +28,14 @@ calcProp <- function(hbbt_trm) {
     sum(sapply(x, .test))/length(x)
   }
   sapply(hbbts, function(x) .count(x))
+}
+
+calcCdProp <- function(cd) {
+  .test <- function(x) {
+    cd %in% x
+  }
+  .count <- function(x) {
+    sum(sapply(x, .test))/length(x)
+  }
+  sapply(cds, function(x) .count(x))
 }

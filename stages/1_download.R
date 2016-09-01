@@ -6,6 +6,7 @@ cat(paste0('\nStage `download` started at [', Sys.time(), ']\n'))
 # FUNCTIONS
 source(file.path('tools', 'i_tools.R'))
 source(file.path('tools', 'iucn_dwnld_tools.R'))
+source(file.path('tools', 'ndobj_tools.R'))
 
 # PARAMETERS
 source('parameters.R')

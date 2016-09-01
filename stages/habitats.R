@@ -29,7 +29,7 @@ ht_tests <- vector("list", length=length(htypes_of_interest))
 names(ht_tests) <- htypes_of_interest
 ht_pull <- raw_scrs <- bin_scrs <- NULL
 for(ht in htypes_of_interest) {
-  vals <- calcProp(ht)
+  vals <- calcHbbtProp(ht)
   test <- wilcox.test(epi$pepi[vals >= .5],
                       epi$pepi[vals < .5])
   means <- tapply(epi$pepi, factor(vals), mean)
@@ -52,23 +52,22 @@ cds_of_interest <- c("7.1", "7.2")  # subterranean
 cds_of_interest <- as.character(seq(1.1, 1.9, .1))  # forests
 cd_tests <- vector("list", length=length(cds_of_interest))
 names(cd_tests) <- cds_of_interest
-cd_pull <- scrs <- NULL
+cd_pull <- bin_scrs <- raw_scrs <- NULL
 for(cd in cds_of_interest) {
-  vals <- as.numeric(sapply(cds, function(x) cd %in% x))
-  test <- wilcox.test(epi$pepi[vals == 1],
-                      epi$pepi[vals == 0])
+  vals <- as.numeric(calcCdProp(cd))
+  test <- wilcox.test(epi$pepi[vals >= .5],
+                      epi$pepi[vals < .5])
   means <- tapply(epi$pepi, factor(vals), mean)
   cd_tests[[cd]] <- list(test, means)
   if(test$p.value < 0.05) {
-    scrs <- c(scrs, vals)
+    raw_scrs <- c(raw_scrs, vals)
+    bin_scrs <- c(bin_scrs, as.numeric(vals >= .5))
     cd_pull <- c(cd_pull, TRUE)
   } else {
     cd_pull <- c(cd_pull, FALSE)
   }
 }
-cds_scrs <- data.frame(scr=scrs, type=
-                         factor(rep(cds_of_interest[cd_pull],
-                                    each=length(whbbts))),
-                       pepi=epi$pepi)
+cds_scrs <- data.frame(scr=bin_scrs, type=factor(rep(cds_of_interest[cd_pull],
+                                    each=nrow(epi))), pepi=epi$pepi)
 p <- ggBinomial(cds_scrs)
 p

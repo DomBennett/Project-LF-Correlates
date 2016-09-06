@@ -23,6 +23,10 @@ cat_dir <- file.path("caches", "iucn", "category")
 if(!file.exists(cat_dir)) {
   dir.create(cat_dir)
 }
+rng_dir <- file.path("caches", "iucn", "range")
+if(!file.exists(rng_dir)) {
+  dir.create(rng_dir)
+}
 
 # FUNCTIONS
 getToken <- function() {
@@ -150,4 +154,44 @@ cleanWrds <- function(txt) {
   wrds <- unique(wrds)
   wrds <- wrds[sapply(wrds, nchar) > min_nchar]
   wrds
+}
+
+getID <- function(nm, token) {
+  # Get ID from sp name
+  res <- getIUCNCat(nm, token)
+  if('result' %in% names(res) && length(res[['result']]) > 0 &&
+     'taxonid' %in% names(res[['result']][[1]])) {
+    return(res[['result']][[1]][['taxonid']])
+  }
+  NULL
+}
+
+getRange <- function(nm, token) {
+  # Get range from IUCN website
+  nm <- cleanNm(nm)
+  # second check if not already downloaded
+  fl <- file.path(rng_dir, paste0(gsub(" ", "_", nm), '.RData'))
+  if(file.exists(fl)) {
+    load(fl)
+  } else {
+    val <- NA
+    id <- getID(nm, token)
+    if(!is.null(id)) {
+      url <- paste0("http://www.iucnredlist.org/details/", id)
+      res <- suppressWarnings(try(expr=readLines(url),
+                                  silent=TRUE))
+      unlink(url)
+      if(class(res) != 'try-error') {
+        bool <- grepl("Estimated extent of occurrence", res)
+        if(any(bool)) {
+          res <- res[bool]
+          res <- strsplit(res, '<\\/td>')
+          i <- which(grepl("Estimated extent of occurrence", res[[1]])) + 1
+          val <- as.numeric(sub(".*>", "", res[[1]][i]))
+        }
+      }
+    }
+    save(val, file=fl)
+  }
+  val
 }

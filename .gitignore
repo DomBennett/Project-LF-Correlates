@@ -5,6 +5,7 @@
 
 # Data
 [0-9]_*/
+caches/
 
 # IUCN token
 iucn_token.R

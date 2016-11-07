@@ -6,6 +6,7 @@
 # Data
 [0-9]_*/
 caches/
+*.tar.gz
 
 # IUCN token
 iucn_token.R

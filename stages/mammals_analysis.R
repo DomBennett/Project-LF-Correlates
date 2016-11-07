@@ -1,44 +1,120 @@
 
-# FUNCTIONS
-source(file.path('tools', 'ndobj_tools.R'))
+load("epi_mammals.RData")
 
-# DIRS
-pan_file <- file.path('0_data', 'panTHERIA.txt')
-epi_file <- file.path('1_download', 'epi.RData')
-ndobj_file <- file.path("0_data", "ndobj.RData")
+library(nlme)
 
-# INPUT
-pan <- read.delim (file=pan_file, na.strings=-999,
-                   stringsAsFactors=FALSE)
-load(ndobj_file)
-load(epi_file)
+names(epi)
 
-# OBS OF INTEREST
-ooi <- c('X5.1_AdultBodyMass_g')
-for(o in ooi) {
-  epi[[o]] <- NA
-}
+# TEMP
+hist(epi[['Temp_Mean_01degC_mean']])  # more normal than anything
+pull <- !is.na(epi[['Temp_Mean_01degC_mean']])
+m1 <- lm(pepi~sstr_pepi, data=epi[pull, ])
+m2 <- lm(pepi~Temp_Mean_01degC_mean, data=epi[pull, ])
+m3 <- lm(pepi~Temp_Mean_01degC_mean+sstr_pepi, data=epi[pull, ])
+summary(m1)
+summary(m2)
+summary(m3)
+anova(m2, m3)
+anova(m1, m3)
+plot(Temp_Mean_01degC_mean~pepi, data=epi)  # not significant
 
-# NAME MATCHING
-for(i in 1:nrow(epi)) {
-  nms <- getKidNms(epi[i,'txid'])
-  res <- matrix(NA, ncol=length(ooi),
-                nrow=length(nms))
-  rownames(res) <- nms
-  colnames(res) <- ooi
-  for(nm in nms) {
-    pull <- pan[['MSW93_Binomial']] == nm
-    if(sum(pull) == 1) {
-      for(o in ooi) {
-        res[nm, o] <- pan[pull, o]
-      }
-    }
-  }
-  epi[i, ooi] <- apply(res, 2, median, na.rm=TRUE)
-}
+# POPULATION GROUP SIZE
+hist(epi[['PopulationGrpSize_med']])  # COUNT
+# TODO
+epi$pgs_log <- log(epi[['PopulationGrpSize_med']])
+hist(epi[['pgs_log']])
+pull <- !is.na(epi[['ml_log']])
+m1 <- lm(pepi~sstr_pepi, data=epi[pull, ])
+m2 <- lm(pepi~ml_log, data=epi[pull, ])
+m3 <- lm(pepi~ml_log+sstr_pepi, data=epi[pull, ])
+summary(m1)
+summary(m2)
+summary(m3)
+anova(m2, m3)
+anova(m1, m3)
+plot(ml_log~pepi, data=epi)
+
+# DIET BREADTH
+hist(epi[['DietBreadth_med']])  # poisson, use count
+epi$ls_log <- log(epi[['LitterSize_med']])
+# TODO
+hist(epi[['ls_log']])
+pull <- !is.na(epi[['ml_log']])
+m1 <- lm(pepi~sstr_pepi, data=epi[pull, ])
+m2 <- lm(pepi~ml_log, data=epi[pull, ])
+m3 <- lm(pepi~ml_log+sstr_pepi, data=epi[pull, ])
+summary(m1)
+summary(m2)
+summary(m3)
+anova(m2, m3)
+anova(m1, m3)
+plot(ml_log~pepi, data=epi)
+
+# LITTER SIZE
+hist(epi[['LitterSize_med']])  # poisson, use count
+epi$ls_log <- log(epi[['LitterSize_med']])
+# TODO
+hist(epi[['ls_log']])
+pull <- !is.na(epi[['ml_log']])
+m1 <- lm(pepi~sstr_pepi, data=epi[pull, ])
+m2 <- lm(pepi~ml_log, data=epi[pull, ])
+m3 <- lm(pepi~ml_log+sstr_pepi, data=epi[pull, ])
+summary(m1)
+summary(m2)
+summary(m3)
+anova(m2, m3)
+anova(m1, m3)
+plot(ml_log~pepi, data=epi)
+
+# MAX LONGEVITY
+hist(epi[['MaxLongevity_m_med']])  # logistic, use med
+epi$ml_log <- log(epi[['MaxLongevity_m_med']])
+hist(epi[['ml_log']])
+pull <- !is.na(epi[['ml_log']])
+m1 <- lm(pepi~sstr_pepi, data=epi[pull, ])
+m2 <- lm(pepi~ml_log, data=epi[pull, ])
+m3 <- lm(pepi~ml_log+sstr_pepi, data=epi[pull, ])
+summary(m1)
+summary(m2)
+summary(m3)
+anova(m2, m3)
+anova(m1, m3)
+plot(ml_log~pepi, data=epi)  # not significant
 
 
-epi$bm_log <- log(epi$X5.1_AdultBodyMass_g)
+# SOCIAL GROUP SIZE
+hist(epi[["SocialGrpSize_mean"]])  # poisson, use mean
+epi$sgs_count <- round(epi[["SocialGrpSize_mean"]])
+pull <- !is.na(epi[['sgs_count']])
+m1 <- glm(sgs_count ~ 1, data=epi[pull, ], family='poisson')
+m2 <- glm(sgs_count ~ pepi, data=epi[pull, ], family='poisson')
+m3 <- glm(sgs_count ~ pepi + sstr_pepi, data=epi[pull, ], family = 'poisson')
+summary(m1)
+summary(m2)
+summary(m3)
+anova(m2, m3)
+anova(m1, m3)  # m3 is best, but sgs has very small impact
+plot(SocialGrpSize_mean~pepi, data=epi)
+
+
+# SEX MATURITY
+hist(epi[['SexualMaturityAge_d_med']])  # logistic, use med
+epi$sm_log <- log(epi[['SexualMaturityAge_d_med']])
+hist(epi[['sm_log']])
+pull <- !is.na(epi[['sm_log']])
+m1 <- lm(pepi~sstr_pepi, data=epi[pull, ])
+m2 <- lm(pepi~sm_log, data=epi[pull, ])
+m3 <- lm(pepi~sm_log+sstr_pepi, data=epi[pull, ])
+summary(m1)
+summary(m2)
+summary(m3)
+anova(m2, m3)
+anova(m1, m3)
+plot(sm_log~pepi, data=epi)
+
+
+# BODY MASS
+epi$bm_log <- log(epi$AdultBodyMass_g_med)
 epi$n_log <- log(epi$n)
 ss_epi <- epi[epi[['n']] == 1, ]
 epi <- epi[!is.na(epi[['bm_log']]) & !is.na(epi[['sstr_pepi']]), ]
@@ -222,3 +298,4 @@ map
 pdf("map.pdf", height = 6, width = 10.5)
 print (map)
 dev.off()
+

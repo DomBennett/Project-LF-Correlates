@@ -26,11 +26,16 @@ epi <- read.csv(file=epi_file)
 epi <- epi[!duplicated(epi$txid), ]
 epi[['txid']] <- as.character(epi[['txid']])
 
+# SET IS
+# not point searching for things not on IUCN
+is <- which(epi[['txnmcgrp']] %in% c('vertebrates', 'bony_fish', 'plants',
+                                     'lepidosaurs', 'birds', 'amphibia', 'mammals'))
+
 # ADD CATES
 cat('    Searching IUCN for extinction risk categories ....')
 ignr <- NULL  # ignore all DD species
 epi$cate <- NA
-for(i in 1:nrow(epi)) {
+for(i in is) {
   nms <- getKidNms(epi[i,'txid'])
   res <- rep(NA, length(nms))
   names(res) <- nms
@@ -54,7 +59,7 @@ cat("Done, found data for [", sum(!is.na(epi[['cate']])), '/',
 # ADD NHABITATS
 cat('    Searching IUCN for nhabitats ....')
 epi[['nhbbts']] <- NA
-for(i in 1:nrow(epi)) {
+for(i in is) {
   nms <- getKidNms(epi[i,'txid'])
   nms <- nms[!nms %in% ignr]
   res <- rep(NA, length(nms))
@@ -75,7 +80,7 @@ cat("Done, found data for [", sum(!is.na(epi[['nhbbts']])), '/',
 # ADD NC
 cat('    Searching IUCN for ncountries ....')
 epi[['ncntrs']] <- NA
-for(i in 1:nrow(epi)) {
+for(i in is) {
   nms <- getKidNms(epi[i,'txid'])
   nms <- nms[!nms %in% ignr]
   res <- rep(NA, length(nms))
@@ -96,7 +101,7 @@ cat("Done, found data for [", sum(!is.na(epi[['ncntrs']])), '/',
 # HABITAT AND ECOLOGY AS WORDS
 wrds <- vector("list", length=nrow(epi))
 cat('    Searching IUCN for descriptions ....')
-for(i in 1:nrow(epi)) {
+for(i in is) {
   nms <- getKidNms(epi[i,'txid'])
   res <- NULL
   for(nm in nms) {
@@ -122,7 +127,7 @@ cat('Done.\n')
 # HABITATS
 cds <- hbbts <- vector("list", length=nrow(epi))
 cat('    Searching IUCN for habitats ....')
-for(i in 1:nrow(epi)) {
+for(i in is) {
   nms <- getKidNms(epi[i,'txid'])
   res_h <- res_c <- list()
   cc <- 0

@@ -62,7 +62,7 @@ getIUCNCat <- function(nm, token) {
     load(fl)
   } else {
     url <- paste0("http://apiv3.iucnredlist.org/api/v3/species/", nm,"?token=", token)
-    res <- MoreTreeTools:::.safeFromJSON(url)
+    res <- .safeFromJSON(url)
     save(res, file=fl)
   }
   res
@@ -94,6 +94,25 @@ cateAsNum <- function(cate) {
   NA
 }
 
+.safeFromJSON <- function (url, max.trys=12, power=2) {
+  # Safe wrapper for fromJSON
+  trys <- 0
+  waittime <- 2
+  while (trys < max.trys) {
+    json.obj <- try (RJSONIO::fromJSON(url), silent = TRUE)
+    if (class (json.obj) == 'try-error') {
+      cat ('---- Connection failed: trying again in [', waittime,
+           's]----\n', sep='')
+      trys <- trys + 1
+      Sys.sleep (waittime)
+      waittime <- waittime*power
+    } else {
+      return (json.obj)
+    }
+  }
+  stop ("Failed to connect, server may be down.")
+}
+
 getIUCNNrrtv <- function(nm, token) {
   # Get narrative data for species from IUCN API
   # first make sure nm is html safe
@@ -104,7 +123,7 @@ getIUCNNrrtv <- function(nm, token) {
     load(fl)
   } else {
     url <- paste0("http://apiv3.iucnredlist.org/api/v3/species/narrative/", nm,"?token=", token)
-    res <- MoreTreeTools:::.safeFromJSON(url)
+    res <- .safeFromJSON(url)
     save(res, file=fl)
   }
   res
@@ -121,7 +140,7 @@ getIUCNHbbts <- function(nm, token) {
   } else {
     url <- paste0("http://apiv3.iucnredlist.org/api/v3/habitats/species/name/",
                   nm,"?token=", token)
-    res <- MoreTreeTools:::.safeFromJSON(url)
+    res <- .safeFromJSON(url)
     save(res, file=fl)
   }
   res
@@ -138,7 +157,7 @@ getIUCNCntrs <- function(nm, token) {
   } else {
     url <- paste0("http://apiv3.iucnredlist.org/api/v3/species/countries/name/",
                   nm,"?token=", token)
-    res <- MoreTreeTools:::.safeFromJSON(url)
+    res <- .safeFromJSON(url)
     save(res, file=fl)
   }
   res

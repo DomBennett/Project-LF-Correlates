@@ -36,6 +36,7 @@ cat('    Searching IUCN for extinction risk categories ....')
 ignr <- NULL  # ignore all DD species
 epi$cate <- NA
 for(i in is) {
+  iPrnt(i, max(is))
   nms <- getKidNms(epi[i,'txid'])
   res <- rep(NA, length(nms))
   names(res) <- nms
@@ -60,6 +61,7 @@ cat("Done, found data for [", sum(!is.na(epi[['cate']])), '/',
 cat('    Searching IUCN for nhabitats ....')
 epi[['nhbbts']] <- NA
 for(i in is) {
+  iPrnt(i, max(is))
   nms <- getKidNms(epi[i,'txid'])
   nms <- nms[!nms %in% ignr]
   res <- rep(NA, length(nms))
@@ -81,6 +83,7 @@ cat("Done, found data for [", sum(!is.na(epi[['nhbbts']])), '/',
 cat('    Searching IUCN for ncountries ....')
 epi[['ncntrs']] <- NA
 for(i in is) {
+  iPrnt(i, max(is))
   nms <- getKidNms(epi[i,'txid'])
   nms <- nms[!nms %in% ignr]
   res <- rep(NA, length(nms))
@@ -102,6 +105,7 @@ cat("Done, found data for [", sum(!is.na(epi[['ncntrs']])), '/',
 wrds <- vector("list", length=nrow(epi))
 cat('    Searching IUCN for descriptions ....')
 for(i in is) {
+  iPrnt(i, max(is))
   nms <- getKidNms(epi[i,'txid'])
   res <- NULL
   for(nm in nms) {
@@ -128,6 +132,7 @@ cat('Done.\n')
 cds <- hbbts <- vector("list", length=nrow(epi))
 cat('    Searching IUCN for habitats ....')
 for(i in is) {
+  iPrnt(i, max(is))
   nms <- getKidNms(epi[i,'txid'])
   res_h <- res_c <- list()
   cc <- 0

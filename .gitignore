@@ -7,6 +7,10 @@
 [0-9]_*/
 caches/
 *.tar.gz
+*.csv
+*.pdf
+*.xlsx
+*_log
 
 # IUCN token
 iucn_token.R

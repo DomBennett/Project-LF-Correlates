@@ -1,42 +1,33 @@
-library(ggplot2)
+matchMatrix <- function(pttrns) {
+  # Match patterns to words
+  .mtch <- function(i) {
+    tmp <- rep(NA, length(pttrns))
+    for(j in 1:length(pttrns)) {
+      tmp[j] <- any(grepl(pttrns[j], wrds[[i]]))
+    }
+    tmp
+  }
+  res <- plyr::mdply(wwrds, .fun=.mtch)
+  res <- res[ ,-1]
+  colnames(res) <- pttrns
+  rownames(res) <- wwrds
+  res <- res[rowSums(res) > 1,]
+  res
+}
 
-senseScore <- function(slt_nm, pstvs, ngtvs) {
+senseScores <- function(mtch_mtrx, pstvs, ngtvs) {
   # Calculate the sense score
   # A measure of whether descriptions match a given meaning
   # based on synonyms (pstvs) and antonyms (ngtvs)
-  pstv_counts <- rep(0, length(pstvs))
-  ngtv_counts <- rep(0, length(ngtvs))
-  names(pstv_counts) <- pstvs
-  names(ngtv_counts) <- ngtvs
-  epi[[slt_nm]] <<- NA
-  for(i in wwrds) {
-    pscr <- 0
-    for(pstv in pstvs) {
-      wc <- any(grepl(pstv, wrds[[i]]))
-      pscr <- pscr + wc
-      pstv_counts[[pstv]] <- pstv_counts[[pstv]] + wc
-    }
-    nscr <- 0
-    for(ngtv in ngtvs) {
-      wc <- any(grepl(ngtv, wrds[[i]]))
-      nscr <- nscr + wc
-      ngtv_counts[[ngtv]] <- ngtv_counts[[ngtv]] + wc
-    }
-    epi[[slt_nm]][i] <<- (pscr > 0) - (nscr > 0)
-  }
-  pstv_counts <- data.frame(wrd=names(pstv_counts),
-                            count=pstv_counts,
-                            type="synonym")
-  ngtv_counts <- data.frame(wrd=names(ngtv_counts),
-                            count=ngtv_counts,
-                            type="antonym")
-  ordrd_levels <- c(as.character(pstv_counts$wrd[
-    order(pstv_counts$count, decreasing=FALSE)]),
-    as.character(ngtv_counts$wrd[
-      order(ngtv_counts$count, decreasing=TRUE)]))
-  wrd_counts <- rbind(pstv_counts, ngtv_counts)
-  wrd_counts$wrd <- factor(wrd_counts$wrd, levels=ordrd_levels)
-  wrd_counts
+  # scores are 0, -1 or +1
+  # score 1 -- at least 1 pstv or ngtv match only
+  scr1 <- (rowSums(mtch_mtrx[ ,pstvs]) > 0) - (rowSums(mtch_mtrx[ ,ngtvs]) > 0)
+  # score 2 -- most of pstv or ngtv
+  scr2 <- rowSums(mtch_mtrx[ ,pstvs]) - rowSums(mtch_mtrx[ ,ngtvs])
+  scr2 <- scr2/abs(scr2)
+  scr2[is.na(scr2)] <- 0
+  # return
+  data.frame(scr1, scr2)
 }
 
 getExampleTextFrmI <- function(epi, i) {
@@ -51,7 +42,6 @@ getExampleTextFrmI <- function(epi, i) {
       res <- c(res, nrrtv)
     }
   }
-  cat("EPI: [", epi[i,'nm']," @ ", i, "]\n", sep="")
   res
 }
 
@@ -62,32 +52,60 @@ getExampleTextFrmWrd <- function(epi, pttrn) {
   getExampleTextFrmI(epi, i)
 }
 
-ggBoxplot <- function(score, x="pepi") {
-  p_data <- data.frame(score=epi[[score]],
-                       epi=epi[[x]])
-  p_data <- na.omit(p_data)
-  p <- ggplot(p_data, aes(factor(score), epi)) +
-    geom_boxplot()
-  p + theme_bw(fill="cornflowerblue")
+writeOutExampleTexts <- function(epi, mtch_mtrx, scores, fname) {
+  # write example texts to file along with pepi, score and found patterns
+  # ignore any clade with more than 2 species
+  res <- ''
+  is <- as.numeric(rownames(mtch_mtrx))
+  for(i in 1:nrow(mtch_mtrx)) {
+    epi_i <- as.numeric(rownames(mtch_mtrx))[i]
+    n <- epi[epi_i, 'n']
+    if(n > 2) {
+      next
+    }
+    header <- paste0(epi[epi_i, 'scinm'], '\n',
+                     paste0(names(scores[i, ]), collapse='|'), '\n',
+                     paste0(scores[i, ], collapse='|'), '\n')
+    mtchs <- colnames(mtch_mtrx)[as.logical(mtch_mtrx[i, ])]
+    mtchs <- paste0('Matches: ', paste0(mtchs, collapse=', '), '\n')
+    txt <- getExampleTextFrmI(epi, epi_i)
+    res <- paste0(res, '\n\n-----------------------', header, mtchs, txt)
+  }
+  write.table(x=res, file=fname, quote=FALSE, row.names=FALSE,
+              col.names=FALSE)
 }
 
-ggViolin <- function(score, x="pepi") {
-  p_data <- data.frame(score=epi[[score]],
-                       epi=epi[[x]])
-  p_data <- p_data[p_data$score %in% c(-1, 1), ]
-  p_data$score[p_data$score == -1] <- "antonym"
-  p_data$score[p_data$score == 1] <- "synonym"
-  p_data$score <- factor(p_data$score, levels=c('synonym',
-                                                "antonym"))
-  p <- ggplot(p_data, aes(score, epi, fill=score)) + geom_violin()
-  p <- p + theme_bw() + theme(axis.text.x=element_blank(),
-                              legend.position="none")
-  p
-}
-
-ggWrdBars <- function(wrd_counts) {
-  ggplot(wrd_counts, aes(x=wrd, y=count, fill=type)) +
-    coord_flip() + geom_bar(stat="identity") +
-    ylab("Freq.") + xlab("") + theme_bw() +
-    theme(legend.title=element_blank())
+loopTests <- function(scores) {
+  # test and plot
+  test_1 <- wilcox.test(scores$pepi[scores$scr1 == 1],
+                        scores$pepi[scores$scr1 == -1])
+  if(test_1$p.value < 0.05) {
+    cat('-- scr1~pepi is significant:\n')
+    print(test_1)
+    print(tapply(scores$pepi, factor(scores$scr1), mean, na.rm=TRUE))
+  }
+  test_2 <- wilcox.test(scores$pepi[scores$scr2 == 1],
+                        scores$pepi[scores$scr2 == -1])
+  if(test_2$p.value < 0.05) {
+    cat('-- scr2~pepi is significant:\n')
+    print(test_1)
+    print(tapply(scores$pepi, factor(scores$scr2), mean, na.rm=TRUE))
+  }
+  if(sum(!is.na(scores$epi[scores$scr1 == 1])) > 20 &
+     sum(!is.na(scores$epi[scores$scr1 == -1])) > 20) {
+    test_3 <- wilcox.test(scores$epi[scores$scr1 == 1],
+                          scores$epi[scores$scr1 == -1])
+    if(test_3$p.value < 0.05) {
+      cat('-- scr1~epi is significant:\n')
+      print(test_3)
+      print(tapply(scores$epi, factor(scores$scr1), mean, na.rm=TRUE))
+    }
+    test_4 <- wilcox.test(scores$pepi[scores$scr2 == 1],
+                          scores$pepi[scores$scr2 == -1])
+    if(test_4$p.value < 0.05) {
+      cat('-- scr2~epi is significant:\n')
+      print(test_1)
+      print(tapply(scores$epi, factor(scores$scr2), mean, na.rm=TRUE))
+    }
+  }
 }

@@ -6,14 +6,16 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     x <- mdl_data[[nm_vrbl]]
     y <- mdl_data[[mtrc]]
     nm <- mdl_data[['scinm']]
-    genus <- mdl_data[['genus']]
-    family <- mdl_data[['family']]
-    order <- mdl_data[['order']]
+    genus <- as.character(mdl_data[['genus']])
+    family <- as.character(mdl_data[['family']])
+    order <- as.character(mdl_data[['order']])
+    #pull <- genus == family & family == order
     data <- data.frame(y, x, nm, genus, family, order)
     data[['x']][data[['x']] == -Inf] <- NA
     data[['x']][data[['x']] == Inf] <- NA
+    #data <- data[!pull, ]
     data <- na.omit(data)
-    if(nrow(data) < 50) {
+    if(nrow(data) < 200) {
       next
     }
     # select NULL model
@@ -25,7 +27,7 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     ms[[5]] <- lmer(y~1+(1|family/genus), data=data, REML=FALSE)
     ms[[6]] <- lmer(y~1+(1|order/family), data=data, REML=FALSE)
     ms[[7]] <- lmer(y~1+(1|order/genus), data=data, REML=FALSE)
-    ms[[8]] <- lmer(y~1+(1|order/family/genus), data=data, REML=FALSE)
+    # three level effects takes too long
     nulli <- which.min(sapply(ms, AIC))
     m0 <- ms[[which.min(sapply(ms, AIC))]]
     rm(ms)
@@ -49,14 +51,11 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     } else if(nulli == 6) {
       m1 <- suppressWarnings(lmer(y~x+(1|order/family), data=data, REML=FALSE))
       m2 <- suppressWarnings(lmer(y~x+(x|order/family), data=data, REML=FALSE))
-    } else if(nulli == 7) {
+    } else {
       m1 <- suppressWarnings(lmer(y~x+(1|order/genus), data=data, REML=FALSE))
       m2 <- suppressWarnings(lmer(y~x+(x|order/genus), data=data, REML=FALSE))
-    } else {
-      m1 <- suppressWarnings(lmer(y~x+(1|order/family/genus), data=data, REML=FALSE))
-      m2 <- suppressWarnings(lmer(y~x+(x|order/family/genus), data=data, REML=FALSE))
     }
-    if(exists('m2')) {
+    if(nulli > 1) {
       # choose best model between m1 and m2
       anvres <- anova(m2, m1)
       if(anvres$`Pr(>Chisq)`[2] < 0.05) {
@@ -68,15 +67,20 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     sm1 <- summary(m1)
     frmla <- as.character(sm1$call)[2]
     anvres <- anova(m0, m1)
+    if('Pr(>Chisq)' %in% names(anvres)) {
+      p_vl <- anvres[['Pr(>Chisq)']][2]
+    } else {
+      p_vl <- anvres[['Pr(>F)']][2]
+    }
     if(aics[1] < aics[2]) {
       p <- ' '
-    } else if(anvres$`Pr(>Chisq)`[2] < 0.001) {
+    } else if(p_vl < 0.001) {
       p <- '***'
-    } else if(anvres$`Pr(>Chisq)`[2] < 0.01) {
+    } else if(p_vl < 0.01) {
       p <- '**'
-    } else if(anvres$`Pr(>Chisq)`[2] < 0.05) {
+    } else if(p_vl < 0.05) {
       p <- '*'
-    } else if(anvres$`Pr(>Chisq)`[2] < 0.1) {
+    } else if(p_vl < 0.1) {
       p <- '.'
     } else {
       p <- ' '

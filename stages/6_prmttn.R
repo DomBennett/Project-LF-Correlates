@@ -1,20 +1,25 @@
 # TEST IF LIVING FOSSILS SHARE MORE
 
 # START
-cat(paste0('\nStage `iucn permutation` started at [', Sys.time(), ']\n'))
+cat(paste0('\nStage `text permutation` started at [', Sys.time(), ']\n'))
 
 # PARAMETERS
 source('parameters.R')
+
+# LIBS
+library(doMC)
+ncps <- 2
+registerDoMC(cores=ncps)
 
 # FUNCTIONS
 source(file.path('tools', 'iucn_prmttn_tools.R'))
 
 # DIRS
-output_dir <- '10_iucn_prmttn'
+output_dir <- '6_prmttn'
 if (!file.exists(output_dir)) {
   dir.create(output_dir)
 }
-input_dir <- "9_iucn_dwnld"
+input_dir <- "5_prmttn_dwnld"
 output_file <- file.path(output_dir, "res.RData")
 iucn_files <- list.files(input_dir)
 
@@ -24,100 +29,12 @@ for(iucn_file in iucn_files) {
   grp <- sub("\\.RData", "", iucn_file)
   cat('    Working on [', grp, '] ....\n', sep="")
   load(file.path(input_dir, iucn_file))
-  gen_res <- matrix(ncol=6, nrow=6)
+  gen_res <- matrix(ncol=6, nrow=3)
   colnames(gen_res) <- c("Obs_mean", "Obs_sd", "Null_mean",
                      "Null_sd", "Z_score", "P_val")
-  rownames(gen_res) <- c("Categories", "Nhabitats", "Ncountries",
-                     "Desciptions_cosine", "Desciptions_lv",
-                     "Desciptions_jw")
+  rownames(gen_res) <- c("Desciptions_cosine", "Desciptions_lv",
+                         "Desciptions_jw")
   pdf(file.path(output_dir, paste0(grp, ".pdf")))
-  
-  # CATEGORIES
-  cat('    Testing categories ....')
-  cates <- vector(length=length(lf_cate))
-  for(i in 1:length(lf_cate)) {
-    tmp <- vector(length=length(lf_cate[[i]]))
-    for(j in 1:length(lf_cate[[i]])) {
-      tmp[j] <- cateAsNum(lf_cate[[i]][[j]])
-    }
-    cates[i] <- mean(tmp)
-  }
-  null <- vector(length=length(null_cate))
-  for(i in 1:length(null_cate)) {
-    tmp <- unlist(lapply(null_cate[[i]],
-                         function(x) cateAsNum(x)))
-    null[i] <- mean(tmp)
-  }
-  obs_mean <- mean(cates)
-  obs_sd <- sd(cates)
-  null_mean <- mean(null)
-  null_sd <- sd(null)
-  p_val <- sum(null <= obs_mean)/length(null)
-  z_score <- (obs_mean - null_mean)/null_sd
-  hist(null, main=paste0('P = ', signif(p_val, 3)),
-       xlab="Categories")
-  abline(v=obs_mean, col='red')
-  gen_res[1, ] <- c(obs_mean, obs_sd, null_mean,
-                null_sd, z_score, p_val)
-  cat("Done.\n")
-  
-  # HABITATS
-  cat('    Testing habitats ....')
-  nhbbts <- vector(length=length(lf_nhbbt))
-  for(i in 1:length(lf_nhbbt)) {
-    tmp <- vector(length=length(lf_nhbbt[[i]]))
-    for(j in 1:length(lf_nhbbt[[i]])) {
-      tmp[j] <- lf_nhbbt[[i]][[j]]
-    }
-    nhbbts[i] <- mean(tmp)
-  }
-  null <- vector(length=length(null_nhbbt))
-  for(i in 1:length(null_nhbbt)) {
-    tmp <- unlist(lapply(null_nhbbt[[i]],
-                         function(x) x))
-    null[i] <- mean(tmp)
-  }
-  obs_mean <- mean(nhbbts)
-  obs_sd <- sd(nhbbts)
-  null_mean <- mean(null)
-  null_sd <- sd(null)
-  p_val <- sum(null <= obs_mean)/length(null)
-  z_score <- (obs_mean - null_mean)/null_sd
-  hist(null, main=paste0('P = ', signif(p_val, 3)),
-       xlab="Habitats")
-  abline(v=obs_mean, col='red')
-  gen_res[2, ] <- c(obs_mean, obs_sd, null_mean,
-                null_sd, z_score, p_val)
-  cat("Done.\n")
-  
-  # COUNTRIES
-  cat('    Testing countries ....')
-  ncntrs <- vector(length=length(lf_ncntr))
-  for(i in 1:length(lf_ncntr)) {
-    tmp <- vector(length=length(lf_ncntr[[i]]))
-    for(j in 1:length(lf_ncntr[[i]])) {
-      tmp[j] <- lf_ncntr[[i]][[j]]
-    }
-    ncntrs[i] <- mean(tmp)
-  }
-  null <- vector(length=length(null_ncntr))
-  for(i in 1:length(null_ncntr)) {
-    tmp <- unlist(lapply(null_ncntr[[i]],
-                         function(x) x))
-    null[i] <- mean(tmp, na.rm=TRUE)
-  }
-  obs_mean <- mean(ncntrs)
-  obs_sd <- sd(ncntrs)
-  null_mean <- mean(null)
-  null_sd <- sd(null)
-  p_val <- sum(null <= obs_mean)/length(null)
-  z_score <- (obs_mean - null_mean)/null_sd
-  hist(null, main=paste0('P = ', signif(p_val, 3)),
-       xlab="Countries")
-  abline(v=obs_mean, col='red')
-  gen_res[3, ] <- c(obs_mean, obs_sd, null_mean,
-                null_sd, z_score, p_val)
-  cat("Done.\n")
   
   # DESCRIPTION DIFFERENCE
   cat('    Testing description difference ....')
@@ -141,7 +58,7 @@ for(iucn_file in iucn_files) {
        main=paste0('P = ', signif(p_val, 3)),
        xlab="Cosine distances of description")
   abline(v=obs_mean, col='red')
-  gen_res[4, ] <- c(obs_mean, obs_sd, null_mean,
+  gen_res[1, ] <- c(obs_mean, obs_sd, null_mean,
                 null_sd, z_score, p_val)
   # levenshtein
   obs_mean <- mean(lf_dsts[,'lv_median'])
@@ -154,7 +71,7 @@ for(iucn_file in iucn_files) {
        main=paste0('P = ', signif(p_val, 3)),
        xlab="Levenshtein distances of description")
   abline(v=obs_mean, col='red')
-  gen_res[5, ] <- c(obs_mean, obs_sd, null_mean,
+  gen_res[2, ] <- c(obs_mean, obs_sd, null_mean,
                 null_sd, z_score, p_val)
   # jaro-winkler
   obs_mean <- mean(lf_dsts[,'jw_median'])
@@ -167,7 +84,7 @@ for(iucn_file in iucn_files) {
        main=paste0('P = ', signif(p_val, 3)),
        xlab="Jaro Winkler distances of description")
   abline(v=obs_mean, col='red')
-  gen_res[6, ] <- c(obs_mean, obs_sd, null_mean,
+  gen_res[3, ] <- c(obs_mean, obs_sd, null_mean,
                 null_sd, z_score, p_val)
   cat("Done.\n")
   dev.off()
@@ -211,8 +128,8 @@ for(iucn_file in iucn_files) {
   obs_wc <- sum(obs_frq)
   z_score <- (obs_wc - mean(null_wc))/sd(null_wc)
   p_val <- sum(null_wc >= obs_wc)/length(null_wc)
-  wc_res <- data.frame(obs=obs_wc, null=null_wc, z_score,
-                       p_val)
+  wc_res <- data.frame(obs=obs_wc, mean_null=mean(null_wc),
+                       sd_null=sd(null_wc), z_score, p_val)
   # get word in description table
   wrd_clade <- vector("list", length=nrow(frq_res))
   wrd_res <- vector("list", length=2)
@@ -237,7 +154,7 @@ for(iucn_file in iucn_files) {
   cat("Done.\n")
   
   # OUTPUT
-  save(gen_res, frq_res, wc_res,
+  save(gen_res, frq_res, wc_res, wrd_clade,
        file=file.path(output_dir, iucn_file))
 }
 

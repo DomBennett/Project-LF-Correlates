@@ -5,8 +5,8 @@
 cat(paste0('\nStage `vrbls` started at [', Sys.time(), ']\n'))
 
 # DIRS
-input_dir <- "5_pack"
-output_dir <- '6_vrbls'
+input_dir <- "7_pack"
+output_dir <- '8_vrbls'
 if(!file.exists(output_dir)) {
   dir.create(output_dir)
 }

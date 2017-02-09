@@ -9,7 +9,7 @@ library(nlme)
 source(file.path('tools', 'phylo_tools.R'))
 
 # DIRS
-input_dir <- "5_pack"
+input_dir <- "8_vrbls"
 rslts_dir <- 'results'
 if(!file.exists(rslts_dir)) {
   dir.create(rslts_dir)

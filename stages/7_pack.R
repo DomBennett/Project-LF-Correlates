@@ -8,7 +8,7 @@ source(file.path('tools', 'ndobj_tools.R'))
 source(file.path('tools', 'pack_tools.R'))
 
 # DIRS
-output_dir <- "5_pack"
+output_dir <- "7_pack"
 if(!file.exists(output_dir)) {
   dir.create(output_dir)
 }

@@ -1,14 +1,14 @@
-# LINEAR MIXED EFFECTS MODELLELING
+# LINEAR REGRESSION MODELLELING
 
 # START
-cat(paste0('\nStage `taxo` started at [', Sys.time(), ']\n'))
+cat(paste0('\nStage `lm` started at [', Sys.time(), ']\n'))
 
 # LIBS
 library(lme4)
 source(file.path('tools', 'taxo_tools.R'))
 
 # DIRS
-input_dir <- "6_vrbls"
+input_dir <- "8_vrbls"
 rslts_dir <- 'results'
 if(!file.exists(rslts_dir)) {
   dir.create(rslts_dir)
@@ -52,26 +52,8 @@ mdl_res <- rbind(mdl_res, avs_res)
 rm(avs_res)
 cat('Done.\n')
 
-# # DETERMINE OUTPUT ORDER
-# mdl_res <- mdl_res[order(abs(mdl_res[['slp']]), decreasing=TRUE), ]
-# ys <- unique(mdl_res[['y']])
-# nstrs <- rep(NA, length(ys))
-# names(nstrs) <- ys
-# for(y in ys) {
-#   strs <- mdl_res[mdl_res[['y']] == y, 'p']
-#   nstrs[y] <- length(strsplit(paste(strs, collapse=''), split="\\*")[[1]]) - 1
-# }
-# nstrs <- sort(nstrs, decreasing=TRUE)
-# ys <- names(nstrs)
-# ordr <- NULL
-# for(y in ys) {
-#   ordr <- c(ordr, which(mdl_res[['y']] == y))
-# }
-# mdl_res <- mdl_res[ordr,]
-
-
 # SAVE
-write.csv(mdl_res, file=file.path(rslts_dir, 'lmem_fits.csv'))
+write.csv(mdl_res, file=file.path(rslts_dir, 'lm_fits.csv'))
 
 # END
-cat(paste0('\nStage `taxo` finished at [', Sys.time(), ']\n'))
+cat(paste0('\nStage `lm` finished at [', Sys.time(), ']\n'))

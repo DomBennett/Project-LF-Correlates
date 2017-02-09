@@ -52,7 +52,7 @@ for(i in is) {
       }
     }
   }
-  epi[['cate']][i] <- mean(res, na.rm=TRUE)
+  epi[['cate']][i] <- median(res, na.rm=TRUE)
 }
 cat("Done, found data for [", sum(!is.na(epi[['cate']])), '/',
     nrow(epi), "].\n", sep="")
@@ -74,7 +74,7 @@ for(i in is) {
       res[[nm]] <- nhbbts
     }
   }
-  epi[['nhbbts']][i] <- mean(res, na.rm=TRUE)
+  epi[['nhbbts']][i] <- median(res, na.rm=TRUE)
 }
 cat("Done, found data for [", sum(!is.na(epi[['nhbbts']])), '/',
     nrow(epi), "].\n", sep="")
@@ -96,7 +96,7 @@ for(i in is) {
       res[[nm]] <- ncntrs
     }
   }
-  epi[['ncntrs']][i] <- mean(res, na.rm=TRUE)
+  epi[['ncntrs']][i] <- median(res, na.rm=TRUE)
 }
 cat("Done, found data for [", sum(!is.na(epi[['ncntrs']])), '/',
     nrow(epi), "].\n", sep="")

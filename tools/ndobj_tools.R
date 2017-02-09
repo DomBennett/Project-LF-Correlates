@@ -10,3 +10,12 @@ getKidNms <- function(txid) {
   }
   nms
 }
+
+getLng <- function(txid, lng=NULL) {
+  lng <- c(ndobj[[txid]][['nm']][['scientific name']], lng)
+  prid <- ndobj[[txid]][['prid']]
+  if(is.null(prid)) {
+    return(lng)
+  }
+  getLng(prid, lng)
+}

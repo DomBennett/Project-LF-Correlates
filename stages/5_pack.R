@@ -19,14 +19,18 @@ avian_file <- file.path('0_data', 'avian_ssd_jan07.txt')
 bmr_file <- file.path('0_data', 'bmr_data.csv')
 epi_file <- file.path('4_range', 'res.RData')
 ndobj_file <- file.path("0_data", "ndobj.RData")
+orders_file <- file.path('0_data', 'orders.RData')
+families_file <- file.path('0_data', 'families.RData')
 
 # VARIABLES OF INTEREST
-all_vrbls <- NULL
+all_vrbls <- c("cate", "nhbbts", "ncntrs", "iucn_range")
 
 # INPUT
 cat('Reading data....\n')
 load(ndobj_file)
 load(epi_file)
+load(orders_file)
+load(families_file)
 cat('Done.\n')
 
 # AVIAN DATA
@@ -94,7 +98,7 @@ all_vrbls <- c(all_vrbls, vrbls)
 cat('Done.\n')
 
 # LOG
-cat('Log all variables that are not normal....')
+cat('Log all variables that are not normal....\n')
 for(i in 1:length(all_vrbls)) {
   vrbl <- all_vrbls[i]
   obs <- epi[[vrbl]]
@@ -114,6 +118,37 @@ for(i in 1:length(all_vrbls)) {
     all_vrbls[i] <- vrbl_log
   }
 }
+cat('Done.\n')
+
+# ADD ORDERS
+cat('Add taxonomic info....\n')
+epi[['family']] <- epi[['order']] <- NA
+for(i in 1:nrow(epi)) {
+  txid <- as.character(epi[i, 'txid'])
+  lng <- getLng(txid)
+  pssbls <- lng[lng %in% orders]
+  if(length(pssbls) > 0) {
+    epi[i, 'order'] <- pssbls[length(pssbls)]
+  } else {
+    epi[i, 'order'] <- srchEntrez(txid, rank='order')
+  }
+  pssbls <- lng[lng %in% families]
+  if(length(pssbls) > 0) {
+    epi[i, 'family'] <- pssbls[length(pssbls)]
+  } else {
+    epi[i, 'family'] <- srchEntrez(txid, rank='family')
+  }
+}
+spp <- epi[['n']] == 1
+epi[['genus']] <- NA
+epi[['genus']][spp] <- sub('\\s.*$', '', epi[['scinm']][spp])
+# repeat higher level taxa for lower ranks
+pull <- !is.na(epi[['txnmcgrp']]) & is.na(epi[['order']])
+epi[pull, 'order'] <- as.character(epi[pull, 'txnmcgrp'])
+pull <- !is.na(epi[['order']]) & is.na(epi[['family']])
+epi[pull, 'family'] <- as.character(epi[pull, 'order'])
+pull <- !is.na(epi[['family']]) & is.na(epi[['genus']])
+epi[pull, 'genus'] <- as.character(epi[pull, 'family'])
 cat('Done.\n')
 
 # OUTPUT

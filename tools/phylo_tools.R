@@ -12,9 +12,8 @@ getMdlData <- function(vrbls, mtrc='pepi') {
 }
 
 loopThroughTests <- function(mtrc) {
-  mdl_res <- list()
+  res <- data.frame(x=mtrc, y=NA, int=NA, slp=NA, AIC=NA, p=NA)
   for(nm_vrbl in vrbls) {
-    cat('.... [', nm_vrbl, ']\n')
     vrbl <- epi[[nm_vrbl]]
     pepi <- epi[[mtrc]]
     data <- data.frame(vrbl, pepi)
@@ -32,11 +31,23 @@ loopThroughTests <- function(mtrc) {
     sm <- summary(m)
     p_val <- sm$tTable[2,4]
     slp <- sm$tTable[2,1]
-    if(p_val < 0.05) {
-      cat('.... [', vrbl, '] is significant, est: [',
-          slp, ']\n', sep='')
-      mdl_res[[nm_vrbl]] <- sm
+    if(p_val < 0.001) {
+      p <- '***'
+    } else if(p_val < 0.01) {
+      p <- '**'
+    } else if(p_val < 0.05) {
+      p <- '*'
+    } else if(p_val < 0.1) {
+      p <- '.'
+    } else {
+      p <- ' '
     }
+    int <- sm$tTable[1,1]
+    slp <- sm$tTable[2,1]
+    tmp <- data.frame(x=mtrc, y=nm_vrbl,
+                      int=int, slp=slp,
+                      AIC=AIC(m), p=p)
+    res <- rbind(res, tmp)
   }
-  mdl_res
+  res[-1, ]
 }

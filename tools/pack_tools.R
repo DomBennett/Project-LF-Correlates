@@ -29,3 +29,33 @@ addToEPI <- function(epi, vrbls, vrbl_data, species_nms, row_i,
   }
   epi
 }
+
+# NCBI
+cache_dir <- "caches"
+if(!file.exists(cache_dir)) {
+  dir.create(cache_dir)
+}
+cache_dir <- file.path("caches", "ncbi_tax")
+if(!file.exists(cache_dir)) {
+  dir.create(cache_dir)
+}
+
+srchEntrez <- function(txid, rank) {
+  res <- NA
+  fl <- file.path(cache_dir, paste0(txid, '_', rank, '.RData'))
+  if(file.exists(fl)) {
+    load(fl)
+    return(res)
+  }
+  dwnld <- rentrez::entrez_fetch(db='taxonomy', id=txid,
+                                 rettype='xml', parsed=TRUE)
+  tax_list <- XML::xmlToList(dwnld)
+  lng <- tax_list$Taxon$LineageEx
+  for(i in 1:length(lng)) {
+    if(grepl(paste0('^', rank, '$'), lng[[i]]$Rank)) {
+      res <- lng[[i]]$ScientificName
+    }
+  }
+  save(res, file=fl)
+  res
+}

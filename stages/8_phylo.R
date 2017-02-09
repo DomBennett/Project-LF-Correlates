@@ -20,6 +20,10 @@ input_file <- file.path(input_dir, "res.RData")
 load(input_file)
 mammal_tree <- read.tree(file.path('0_data', 'mammalia.tre'))
 
+# DROP NON-CONTS VRBLS
+all_vrbls <- all_vrbls[!all_vrbls %in% c("volancy", "fossoriallity",
+                                         "foraging_environment", "daily_activity")]
+
 # ORGANISE TREE AND DATA
 cat('Reading and organising data....\n')
 sp_nms <- gsub('_', ' ', mammal_tree$tip.label)
@@ -38,15 +42,15 @@ epi_tree <- drop.tip(mammal_tree, to_drp)
 mml_epi <- epi[['epi']][!is.na(epi[['epi']])]
 names(mml_epi) <- epi[['scinm']][!is.na(epi[['epi']])]
 epi_lambda <- phylosig(epi_tree, mml_epi, method='lambda')
-cat('.... [', epi_lambda, '] EPI lambda\n')
+cat('.... [', epi_lambda[['lambda']], '] EPI lambda\n', sep='')
 epi_k <- phylosig(epi_tree, mml_epi, method='K')
-cat('.... [', epi_k, '] EPI K\n')
+cat('.... [', epi_k, '] EPI K\n', sep='')
 mml_pepi <- epi[['pepi']]
 names(mml_pepi) <- epi[['scinm']]
 pepi_lambda <- phylosig(mammal_tree, mml_pepi, method='lambda')
-cat('.... [', pepi_lambda, '] pEPI lambda\n')
+cat('.... [', pepi_lambda[['lambda']], '] pEPI lambda\n', sep='')
 pepi_k <- phylosig(mammal_tree, mml_pepi, method='K')
-cat('.... [', pepi_k, '] pEPI K\n')
+cat('.... [', pepi_k, '] pEPI K\n', sep='')
 cat('Done.\n')
 
 # SELECT VRBLS
@@ -54,23 +58,22 @@ cat('Selecting variables....\n')
 vrbls <- NULL
 for(vrbl in all_vrbls) {
   obs <- epi[[vrbl]]
-  if(sum(is.na(obs)) < 100) {
+  if(sum(!is.na(obs)) > 100) {
     vrbls <- c(vrbl, vrbls)
   }
 }
 cat('Done, selected [', length(vrbls), '].\n', sep='')
 
 # LOOPS
-cat('Looping through GLS models for pEPI....\n')
-mml_res <- list()
-mml_res[['pepi']] <- loopThroughTests('pepi')
-cat('Done.\n')
-cat('Looping through GLS models for EPI....\n')
-mml_res[['epi']] <- loopThroughTests('epi')
+cat('Looping through GLS models....\n')
+mml_res <- loopThroughTests('pepi')
+mml_res <- rbind(mml_res, loopThroughTests('epi'))
 cat('Done.\n')
 
 # SAVE
-save(mml_res, file=file.path(rslts_dir, 'res.RData'))
+write.csv(mml_res, file=file.path(rslts_dir, 'phylo_fits.csv'))
+save(epi_lambda, epi_k, pepi_lambda, pepi_k, 
+     mml_res, file=file.path(rslts_dir, 'phylo_res.RData'))
 
 # END
 cat(paste0('\nStage `phylo` finished at [', Sys.time(), ']\n'))

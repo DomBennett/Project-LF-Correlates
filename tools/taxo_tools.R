@@ -2,6 +2,7 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
   res <- data.frame(grp=NA, n=NA, x=mtrc, y=NA, frmla=NA,
                     int=NA, slp=NA, AIC=NA, p=NA)
   for(nm_vrbl in vrbls) {
+    cat('.... [', nm_vrbl, ']\n')
     x <- mdl_data[[nm_vrbl]]
     y <- mdl_data[[mtrc]]
     nm <- mdl_data[['scinm']]

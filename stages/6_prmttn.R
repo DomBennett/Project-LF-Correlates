@@ -28,7 +28,7 @@ for(iucn_file in iucn_files) {
   # INPUT
   grp <- sub("\\.RData", "", iucn_file)
   load(file.path(input_dir, iucn_file))
-  if(any(!sapply(null_dscrptn, length) > length(lf_dscrptn))) {
+  if(any(sapply(null_dscrptn, length) != length(lf_dscrptn))) {
     next
   }
   cat('    Working on [', grp, '] ....\n', sep="")

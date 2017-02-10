@@ -27,8 +27,11 @@ iucn_files <- list.files(input_dir)
 for(iucn_file in iucn_files) {
   # INPUT
   grp <- sub("\\.RData", "", iucn_file)
-  cat('    Working on [', grp, '] ....\n', sep="")
   load(file.path(input_dir, iucn_file))
+  if(any(!sapply(null_dscrptn, length) > length(lf_dscrptn))) {
+    next
+  }
+  cat('    Working on [', grp, '] ....\n', sep="")
   gen_res <- matrix(ncol=6, nrow=3)
   colnames(gen_res) <- c("Obs_mean", "Obs_sd", "Null_mean",
                      "Null_sd", "Z_score", "P_val")

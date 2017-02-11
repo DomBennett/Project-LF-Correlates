@@ -113,6 +113,9 @@ for(i in 1:length(grps)) {
         break
       }
     }
+    if(ntrys > 100) {
+      break
+    }
   }
   cat("       Done.\n")
   

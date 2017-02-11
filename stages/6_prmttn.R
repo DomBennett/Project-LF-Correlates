@@ -40,57 +40,57 @@ for(iucn_file in iucn_files) {
   pdf(file.path(output_dir, paste0(grp, ".pdf")))
   
   # DESCRIPTION DIFFERENCE
-  cat('    Testing description difference ....')
-  lf_dsts <- plyr::mdply(.data=data.frame(i=1:length(lf_dscrptn)),
-                         .fun=function(i){
-                           calcStrDst(lf_dscrptn)
-                         }, .parallel=TRUE)
-  null_dsts <- plyr::mdply(.data=data.frame(i=1:length(lf_dscrptn)),
-                         .fun=function(i){
-                           tmp <- unlist(null_dscrptn[[i]])
-                           calcStrDst(tmp)
-                         }, .parallel=TRUE)
-  # cosine
-  obs_mean <- mean(lf_dsts[,'cosine_median'])
-  obs_sd <- sd(lf_dsts[,'cosine_median'])
-  null_mean <- mean(null_dsts[, 'cosine_median'])
-  null_sd <- sd(null_dsts[, 'cosine_median'])
-  p_val <- sum(null_dsts[, 'cosine_median'] <= obs_mean)/nrow(null_dsts)
-  z_score <- (obs_mean - null_mean)/null_sd
-  hist(null_dsts[, 'cosine_median'],
-       main=paste0('P = ', signif(p_val, 3)),
-       xlab="Cosine distances of description")
-  abline(v=obs_mean, col='red')
-  gen_res[1, ] <- c(obs_mean, obs_sd, null_mean,
-                null_sd, z_score, p_val)
-  # levenshtein
-  obs_mean <- mean(lf_dsts[,'lv_median'])
-  obs_sd <- sd(lf_dsts[,'lv_median'])
-  null_mean <- mean(null_dsts[, 'lv_median'])
-  null_sd <- sd(null_dsts[, 'lv_median'])
-  p_val <- sum(null_dsts[, 'lv_median'] <= obs_mean)/nrow(null_dsts)
-  z_score <- (obs_mean - null_mean)/null_sd
-  hist(null_dsts[, 'lv_median'],
-       main=paste0('P = ', signif(p_val, 3)),
-       xlab="Levenshtein distances of description")
-  abline(v=obs_mean, col='red')
-  gen_res[2, ] <- c(obs_mean, obs_sd, null_mean,
-                null_sd, z_score, p_val)
-  # jaro-winkler
-  obs_mean <- mean(lf_dsts[,'jw_median'])
-  obs_sd <- sd(lf_dsts[,'jw_median'])
-  null_mean <- mean(null_dsts[, 'jw_median'])
-  null_sd <- sd(null_dsts[, 'jw_median'])
-  p_val <- sum(null_dsts[, 'jw_median'] <= obs_mean)/nrow(null_dsts)
-  z_score <- (obs_mean - null_mean)/null_sd
-  hist(null_dsts[, 'jw_median'],
-       main=paste0('P = ', signif(p_val, 3)),
-       xlab="Jaro Winkler distances of description")
-  abline(v=obs_mean, col='red')
-  gen_res[3, ] <- c(obs_mean, obs_sd, null_mean,
-                null_sd, z_score, p_val)
-  cat("Done.\n")
-  dev.off()
+  # cat('    Testing description difference ....')
+  # lf_dsts <- plyr::mdply(.data=data.frame(i=1:length(lf_dscrptn)),
+  #                        .fun=function(i){
+  #                          calcStrDst(lf_dscrptn)
+  #                        }, .parallel=TRUE)
+  # null_dsts <- plyr::mdply(.data=data.frame(i=1:length(lf_dscrptn)),
+  #                        .fun=function(i){
+  #                          tmp <- unlist(null_dscrptn[[i]])
+  #                          calcStrDst(tmp)
+  #                        }, .parallel=TRUE)
+  # # cosine
+  # obs_mean <- mean(lf_dsts[,'cosine_median'])
+  # obs_sd <- sd(lf_dsts[,'cosine_median'])
+  # null_mean <- mean(null_dsts[, 'cosine_median'])
+  # null_sd <- sd(null_dsts[, 'cosine_median'])
+  # p_val <- sum(null_dsts[, 'cosine_median'] <= obs_mean)/nrow(null_dsts)
+  # z_score <- (obs_mean - null_mean)/null_sd
+  # hist(null_dsts[, 'cosine_median'],
+  #      main=paste0('P = ', signif(p_val, 3)),
+  #      xlab="Cosine distances of description")
+  # abline(v=obs_mean, col='red')
+  # gen_res[1, ] <- c(obs_mean, obs_sd, null_mean,
+  #               null_sd, z_score, p_val)
+  # # levenshtein
+  # obs_mean <- mean(lf_dsts[,'lv_median'])
+  # obs_sd <- sd(lf_dsts[,'lv_median'])
+  # null_mean <- mean(null_dsts[, 'lv_median'])
+  # null_sd <- sd(null_dsts[, 'lv_median'])
+  # p_val <- sum(null_dsts[, 'lv_median'] <= obs_mean)/nrow(null_dsts)
+  # z_score <- (obs_mean - null_mean)/null_sd
+  # hist(null_dsts[, 'lv_median'],
+  #      main=paste0('P = ', signif(p_val, 3)),
+  #      xlab="Levenshtein distances of description")
+  # abline(v=obs_mean, col='red')
+  # gen_res[2, ] <- c(obs_mean, obs_sd, null_mean,
+  #               null_sd, z_score, p_val)
+  # # jaro-winkler
+  # obs_mean <- mean(lf_dsts[,'jw_median'])
+  # obs_sd <- sd(lf_dsts[,'jw_median'])
+  # null_mean <- mean(null_dsts[, 'jw_median'])
+  # null_sd <- sd(null_dsts[, 'jw_median'])
+  # p_val <- sum(null_dsts[, 'jw_median'] <= obs_mean)/nrow(null_dsts)
+  # z_score <- (obs_mean - null_mean)/null_sd
+  # hist(null_dsts[, 'jw_median'],
+  #      main=paste0('P = ', signif(p_val, 3)),
+  #      xlab="Jaro Winkler distances of description")
+  # abline(v=obs_mean, col='red')
+  # gen_res[3, ] <- c(obs_mean, obs_sd, null_mean,
+  #               null_sd, z_score, p_val)
+  # cat("Done.\n")
+  # dev.off()
   
   # WORD FREQUENCIES
   cat("    Testing for significant word frequencies ....")

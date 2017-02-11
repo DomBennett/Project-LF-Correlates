@@ -19,7 +19,7 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
       next
     }
     # select NULL model
-    ms <- vector("list", length=8)
+    ms <- vector("list", length=7)
     ms[[1]] <- lm(y~1, data=data)
     ms[[2]] <- lmer(y~1+(1|genus), data=data, REML=FALSE)
     ms[[3]] <- lmer(y~1+(1|family), data=data, REML=FALSE)
@@ -38,24 +38,24 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
       # select fitted, shared slope
       m1 <- suppressWarnings(lmer(y~x+(1|genus), data=data, REML=FALSE))
       # select fitted, changing slope
-      m2 <- suppressWarnings(lmer(y~x+(x|genus), data=data, REML=FALSE))
+      m2 <- try(suppressWarnings(lmer(y~x+(x|genus), data=data, REML=FALSE)), silent=TRUE)
     } else if(nulli == 3) {
       m1 <- suppressWarnings(lmer(y~x+(1|family), data=data, REML=FALSE))
-      m2 <- suppressWarnings(lmer(y~x+(x|family), data=data, REML=FALSE))
+      m2 <- try(suppressWarnings(lmer(y~x+(x|family), data=data, REML=FALSE)), silent=TRUE)
     } else if(nulli == 4) {
       m1 <- suppressWarnings(lmer(y~x+(1|order), data=data, REML=FALSE))
-      m2 <- suppressWarnings(lmer(y~x+(x|order), data=data, REML=FALSE))
+      m2 <- try(suppressWarnings(lmer(y~x+(x|order), data=data, REML=FALSE)), silent=TRUE)
     } else if(nulli == 5) {
       m1 <- suppressWarnings(lmer(y~x+(1|family/genus), data=data, REML=FALSE))
-      m2 <- suppressWarnings(lmer(y~x+(x|family/genus), data=data, REML=FALSE))
+      m2 <- try(suppressWarnings(lmer(y~x+(x|family/genus), data=data, REML=FALSE)), silent=TRUE)
     } else if(nulli == 6) {
       m1 <- suppressWarnings(lmer(y~x+(1|order/family), data=data, REML=FALSE))
-      m2 <- suppressWarnings(lmer(y~x+(x|order/family), data=data, REML=FALSE))
+      m2 <- try(suppressWarnings(lmer(y~x+(x|order/family), data=data, REML=FALSE)), silent=TRUE)
     } else {
       m1 <- suppressWarnings(lmer(y~x+(1|order/genus), data=data, REML=FALSE))
-      m2 <- suppressWarnings(lmer(y~x+(x|order/genus), data=data, REML=FALSE))
+      m2 <- try(suppressWarnings(lmer(y~x+(x|order/genus), data=data, REML=FALSE)), silent=TRUE)
     }
-    if(nulli > 1) {
+    if(nulli > 1 & is(m2)[[1]] != 'try-error') {
       # choose best model between m1 and m2
       anvres <- anova(m2, m1)
       if(anvres$`Pr(>Chisq)`[2] < 0.05) {

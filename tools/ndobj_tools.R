@@ -19,3 +19,8 @@ getLng <- function(txid, lng=NULL) {
   }
   getLng(prid, lng)
 }
+
+getSppTxids <- function(txids) {
+  # return all txids for species
+  txids[unlist(lapply(txids, function(x) ndobj[[x]][['rank']] == "species"))]
+}

@@ -9,7 +9,7 @@ source(file.path('tools', 'iucn_dwnld_tools.R'))
 source(file.path('tools', 'ndobj_tools.R'))
 
 # PARAMETERS
-nlfs <- 1000
+nlfs <- 250
 nitrtns <- 999
 token <- getToken()
 
@@ -31,19 +31,20 @@ epi[['txid']] <- as.character(epi[['txid']])
 cat('Looping through each analysis group ....\n')
 res <- list()
 ignr <- NULL  # ignore all DD species
-grps <- list('verts'=c('vertebrates', 'bony_fish', 'plants',
-                       'lepidosaurs', 'birds', 'amphibia', 'mammals'),
-             'bony_fish'='bony_fish', 'plants'='plants', 'lepidosaurs'='lepidosaurs',
-             'birds'='birds', 'amphibia'='amphibia', 'mammals'='mammals')
+grps <- list('verts'='vertebrates_txids.RData',
+             'bony_fish'='bony_fish_txids.RData',
+             'plants'='plants_txids.RData',
+             'lepidosaurs'='lepidosaurs_txids.RData',
+             'birds'='birds_txids.RData',
+             'amphibia'='amphibia_txids.RData',
+             'mammals'='mammals_txids.RData')
 for(i in 1:length(grps)) {
   # GET GROUP IDS
   grp_nm <- names(grps)[i]
   grp <- grps[[i]]
   cat('    Working on [', grp_nm, '] ....\n', sep="")
-  pull <- epi[['txnmcgrp']] %in% grp
-  txids <- epi[pull, 'txid']
-  pull <- epi[['n']] == 1 & pull
-  spp <- epi[pull, 'txid']
+  load(file.path('0_data', grp))
+  spp <- getSppTxids(txids)
   output_file <- file.path(output_dir, paste0(grp_nm, ".RData"))
   
   # GET LIVING FOSSILS

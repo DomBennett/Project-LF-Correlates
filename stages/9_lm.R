@@ -5,7 +5,7 @@ cat(paste0('\nStage `lm` started at [', Sys.time(), ']\n'))
 
 # LIBS
 library(lme4)
-source(file.path('tools', 'taxo_tools.R'))
+source(file.path('tools', 'lm_tools.R'))
 
 # DIRS
 input_dir <- "8_vrbls"

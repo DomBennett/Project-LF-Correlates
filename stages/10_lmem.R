@@ -1,11 +1,11 @@
 # LINEAR MIXED EFFECTS MODELLELING
 
 # START
-cat(paste0('\nStage `taxo` started at [', Sys.time(), ']\n'))
+cat(paste0('\nStage `lmem` started at [', Sys.time(), ']\n'))
 
 # LIBS
 library(lme4)
-source(file.path('tools', 'taxo_tools.R'))
+source(file.path('tools', 'lmem_tools.R'))
 
 # DIRS
 input_dir <- "8_vrbls"
@@ -83,4 +83,4 @@ cat('Done.\n')
 write.csv(mdl_res, file=file.path(rslts_dir, 'lmem_fits.csv'))
 
 # END
-cat(paste0('\nStage `taxo` finished at [', Sys.time(), ']\n'))
+cat(paste0('\nStage `lmem` finished at [', Sys.time(), ']\n'))

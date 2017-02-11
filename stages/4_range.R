@@ -15,7 +15,7 @@ token <- getToken()
 # DIRS
 input_file <- file.path("1_download", "epi.RData")
 ndobj_file <- file.path("0_data", "ndobj.RData")
-output_dir <- "5_range"
+output_dir <- "4_range"
 if (!file.exists(output_dir)) {
   dir.create(output_dir)
 }

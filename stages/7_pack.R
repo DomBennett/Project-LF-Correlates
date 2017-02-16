@@ -172,6 +172,7 @@ cat('Done.\n')
 load(syn_file)
 j <- colnames(syn_epi)[!colnames(syn_epi) %in% colnames(epi)]
 epi <- cbind(epi, syn_epi[ ,j])
+all_vrbls <- c(all_vrbls, "hermit", "lethary", "refugium", "specialist", "primitive", "oddness")
 
 # OUTPUT
 save(epi, all_vrbls, file=file.path(output_dir, "res.RData"))

@@ -16,6 +16,9 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     if(nrow(data) < 50) {
       next
     }
+    if(sum(data$y) < 10) {
+      next
+    }
     # select NULL model
     ms <- list()
     rndm_effcts <- c('(1|genus)', '(1|family)',
@@ -25,9 +28,10 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
                      '(x|order)', '(x|family/genus)',
                      '(x|order/family)', '(x|order/genus)')
     drp_bool <- rep(NA, length(rndm_effcts) + 1)
-    drp_bool[1] <- TRUE
     ms <- vector('list', length=length(rndm_effcts) + 1)
-    ms[[1]] <- glm(y~1, data=data, family='poisson')
+    ms[[1]] <- try(glm(y~1, data=data, family='poisson'),
+                   silent=TRUE)
+    drp_bool[1] <- is(m)[[1]] != 'try-error'
     for(i in 1:length(rndm_effcts)) {
       frml <- paste0('y~1+', rndm_effcts[[i]])
       options(warn=2)
@@ -35,6 +39,9 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
                silent=TRUE)
       drp_bool[i+1] <- is(m)[[1]] != 'try-error'
       ms[[i+1]] <- m
+    }
+    if(sum(drp_bool) == 0) {
+      next
     }
     nulli <- which(drp_bool)[which.min(sapply(ms[drp_bool], AIC))]
     m0 <- ms[[nulli]]

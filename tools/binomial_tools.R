@@ -31,7 +31,7 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     for(i in 1:length(rndm_effcts)) {
       frml <- paste0('y~1+', rndm_effcts[[i]])
       options(warn=2)
-      m <- try(glmer(frml, data=data, REML=FALSE, family='poisson'),
+      m <- try(glmer(frml, data=data, family='poisson'),
                silent=TRUE)
       drp_bool[i+1] <- is(m)[[1]] != 'try-error'
       ms[[i+1]] <- m
@@ -44,14 +44,19 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
       m1 <- glm(y~x, data=data, family='poisson')
     } else {
       frml <- paste0('y~x+', rndm_effcts[[nulli-1]])
-      m1 <- glmer(frml, data=data, REML=FALSE, family='poisson')
+      m1 <- glmer(frml, data=data, family='poisson')
     }
     aics <- AIC(m0, m1)[,2]
     sm0 <- summary(m0)
     sm1 <- summary(m1)
     frmla <- as.character(sm1$call)[2]
-    anvres <- anova(m0, m1, test = 'Chisq')
-    p_vl <- anvres[['Pr(>Chisq)']][2]
+    anvres <- anova(m0, m1)
+    if('Pr(>Chisq)' %in% names(anvres)) {
+      p_vl <- anvres[['Pr(>Chisq)']][2]
+    } else {
+      anvres <- anova(m0, m1, test = 'Chisq')
+      p_vl <- anvres[['Pr(>Chi)']][2]
+    }
     if(aics[1] < aics[2]) {
       p <- ' '
     } else if(p_vl < 0.001) {

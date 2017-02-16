@@ -21,6 +21,7 @@ epi_file <- file.path('4_range', 'res.RData')
 ndobj_file <- file.path("0_data", "ndobj.RData")
 orders_file <- file.path('0_data', 'orders.RData')
 families_file <- file.path('0_data', 'families.RData')
+syn_file <- file.path('2_synonyms', 'res.RData')
 
 # VARIABLES OF INTEREST
 all_vrbls <- c("cate", "nhbbts", "ncntrs", "iucn_range")
@@ -166,6 +167,11 @@ epi[pull, 'family'] <- as.character(epi[pull, 'order'])
 pull <- !is.na(epi[['family']]) & is.na(epi[['genus']])
 epi[pull, 'genus'] <- as.character(epi[pull, 'family'])
 cat('Done.\n')
+
+# ADD SYNONYMS
+load(syn_file)
+j <- colnames(syn_epi)[!colnames(syn_epi) %in% colnames(epi)]
+epi <- cbind(epi, syn_epi[ ,j])
 
 # OUTPUT
 save(epi, all_vrbls, file=file.path(output_dir, "res.RData"))

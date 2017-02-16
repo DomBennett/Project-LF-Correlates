@@ -31,7 +31,7 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     ms <- vector('list', length=length(rndm_effcts) + 1)
     ms[[1]] <- try(glm(y~1, data=data, family='poisson'),
                    silent=TRUE)
-    drp_bool[1] <- is(m)[[1]] != 'try-error'
+    drp_bool[1] <- is(ms[[1]])[[1]] != 'try-error'
     for(i in 1:length(rndm_effcts)) {
       frml <- paste0('y~1+', rndm_effcts[[i]])
       options(warn=2)

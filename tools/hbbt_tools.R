@@ -10,42 +10,16 @@ getShrdWrds <- function(types) {
   names(special_types)[special_types > 1]
 }
 
-testing <- function(cds_of_interest, indx) {
-  # loop through all the clades and test the proportion of descendents
-  # present in the habitats of interest
+hbbtPA <- function(cds_of_interest) {
+  # loop through all the clades and get pa for habitat
   # cds_of_interest (named vector of codes or list of vectors of codes)
-  p_data <- data.frame(pa=NA, ht=NA)
-  p_data[[indx]] <- NA
-  cd_tests <- vector("list", length=length(cds_of_interest))
-  names(cd_tests) <- names(cds_of_interest)
+  res <- matrix(NA, nrow=nrow(epi), ncol=length(cds_of_interest))
+  colnames(res) <- names(cds_of_interest)
   for(i in 1:length(cds_of_interest)) {
     vals <- as.numeric(calcCdProp(cds_of_interest[[i]]))
     vals <- as.numeric(vals >= .5)
-    if(sum(vals) > 20) {
-      tmp_p_data <- data.frame(pa=vals, ht=names(cd_tests)[i])
-      tmp_p_data[[indx]] <- epi[[indx]]
-      p_data <- rbind(p_data, tmp_p_data)
-      test <- t.test(epi[[indx]][vals == 1],
-                     epi[[indx]][vals != 1])
-      means <- tapply(epi[[indx]], factor(vals), mean, na.rm=TRUE)
-      diff <- means[1] - means[2]
-      cd_tests[[i]] <- list('p'=test[['p.value']], 'means'=means,
-                            'diff'=diff, 'n'=sum(vals))
-    }
+    res[ ,i] <- vals
   }
-  p_data <- p_data[-1, ]
-  cd_tests <- cd_tests[!sapply(cd_tests, is.null)]
-  ns <- sapply(cd_tests, function(x) x[['n']])
-  diffs <- sapply(cd_tests, function(x) x[['diff']])
-  p_vals <- sapply(cd_tests, function(x) x[['p']])
-  ordr <- order(diffs, decreasing=TRUE)
-  diffs <- diffs[ordr]
-  p_vals <- p_vals[ordr]
-  cds <- names(cd_tests)[ordr]
-  test_res <- data.frame(cds, diffs, p_vals,
-                         stringsAsFactors=FALSE)
-  res <- list('test_res'=test_res[p_vals < 0.05, ],
-              'p_data'=p_data)
   res
 }
 

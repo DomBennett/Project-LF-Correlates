@@ -12,8 +12,10 @@ getMdlData <- function(vrbls, mtrc='pepi') {
 }
 
 loopThroughTests <- function(mtrc) {
-  res <- data.frame(x=mtrc, y=NA, int=NA, slp=NA, AIC=NA, p=NA)
+  res <- data.frame(n=NA, x=mtrc, y=NA, int=NA, slp=NA,
+                    AIC=NA, null=NA, p=NA)
   for(nm_vrbl in vrbls) {
+    cat('....[', nm_vrbl, ']\n')
     vrbl <- epi[[nm_vrbl]]
     pepi <- epi[[mtrc]]
     data <- data.frame(vrbl, pepi)
@@ -26,11 +28,13 @@ loopThroughTests <- function(mtrc) {
     }
     to_drp <- mammal_tree$tip.label[!mammal_tree$tip.label %in% rownames(data)]
     tree <- drop.tip(mammal_tree, to_drp)
-    m <- gls(pepi~vrbl, data=data, method="ML",
-             correlation=corPagel(value=1, phy=tree, fixed=FALSE))
-    sm <- summary(m)
-    p_val <- sm$tTable[2,4]
-    slp <- sm$tTable[2,1]
+    m0 <- gls(pepi~1, data=data, method="ML",
+              correlation=corPagel(value=1, phy=tree, fixed=FALSE))
+    m1 <- gls(pepi~vrbl, data=data, method="ML",
+              correlation=corPagel(value=1, phy=tree, fixed=FALSE))
+    sm <- summary(m1)
+    anvres <- anova(m0, m1)
+    p_val <- anvres[['p-value']][2]
     if(p_val < 0.001) {
       p <- '***'
     } else if(p_val < 0.01) {
@@ -44,9 +48,10 @@ loopThroughTests <- function(mtrc) {
     }
     int <- sm$tTable[1,1]
     slp <- sm$tTable[2,1]
-    tmp <- data.frame(x=mtrc, y=nm_vrbl,
+    tmp <- data.frame(n=nrow(data),x=mtrc, y=nm_vrbl,
                       int=int, slp=slp,
-                      AIC=AIC(m), p=p)
+                      AIC=AIC(m1), null=AIC(m0),
+                      p=p)
     res <- rbind(res, tmp)
   }
   res[-1, ]

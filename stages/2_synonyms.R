@@ -39,6 +39,8 @@ ngtvs <- c('^group', '^pack', '^altruistic', '^convivial', '^gather',
 mtch_mtrx <- matchMatrix(c(pstvs, ngtvs))
 hermit_counts <- colSums(mtch_mtrx)
 hermit_scores <- senseScores(mtch_mtrx, pstvs, ngtvs)
+epi$hermit <- NA
+epi[rownames(hermit_scores), 'hermit'] <- hermit_scores$scr1
 hermit_scores$pepi <- epi[rownames(hermit_scores), 'pepi']
 hermit_scores$epi <- epi[rownames(hermit_scores), 'epi']
 writeOutExampleTexts(epi, mtch_mtrx, scores=hermit_scores,
@@ -55,6 +57,8 @@ ngtvs <- c('^energetic', '^dynamic', '^vigou?r', '^aggressive$', '^nimble$', '^l
 mtch_mtrx <- matchMatrix(c(pstvs, ngtvs))
 lethargy_counts <- colSums(mtch_mtrx)
 lethargy_scores <- senseScores(mtch_mtrx, pstvs, ngtvs)
+epi$lethary <- NA
+epi[rownames(lethargy_scores), 'lethary'] <- lethargy_scores$scr1
 lethargy_scores$pepi <- epi[rownames(lethargy_scores), 'pepi']
 lethargy_scores$epi <- epi[rownames(lethargy_scores), 'epi']
 writeOutExampleTexts(epi, mtch_mtrx, scores=lethargy_scores,
@@ -70,6 +74,8 @@ ngtvs <- c("^dynamic", "^changing$", "^unstable$")
 mtch_mtrx <- matchMatrix(c(pstvs, ngtvs))
 refugium_counts <- colSums(mtch_mtrx)
 refugium_scores <- senseScores(mtch_mtrx, pstvs, ngtvs)
+epi$refugium <- NA
+epi[rownames(refugium_scores), 'refugium'] <- refugium_scores$scr1
 refugium_scores$pepi <- epi[rownames(refugium_scores), 'pepi']
 refugium_scores$epi <- epi[rownames(refugium_scores), 'epi']
 writeOutExampleTexts(epi, mtch_mtrx, scores=refugium_scores,
@@ -88,6 +94,8 @@ ngtvs <- c('^generalist', '^generic', '^unspecialised',
 mtch_mtrx <- matchMatrix(c(pstvs, ngtvs))
 specialist_counts <- colSums(mtch_mtrx)
 specialist_scores <- senseScores(mtch_mtrx, pstvs, ngtvs)
+epi$specialist <- NA
+epi[rownames(specialist_scores), 'specialist'] <- specialist_scores$scr1
 specialist_scores$pepi <- epi[rownames(specialist_scores), 'pepi']
 specialist_scores$epi <- epi[rownames(specialist_scores), 'epi']
 writeOutExampleTexts(epi, mtch_mtrx, scores=specialist_scores,
@@ -103,6 +111,8 @@ ngtvs <- c('^developed$', '^specialised$', '^specialized$', '^adapted$',
 mtch_mtrx <- matchMatrix(c(pstvs, ngtvs))
 primitive_counts <- colSums(mtch_mtrx)
 primitive_scores <- senseScores(mtch_mtrx, pstvs, ngtvs)
+epi$primitive <- NA
+epi[rownames(primitive_scores), 'primitive'] <- primitive_scores$scr1
 primitive_scores$pepi <- epi[rownames(primitive_scores), 'pepi']
 primitive_scores$epi <- epi[rownames(primitive_scores), 'epi']
 writeOutExampleTexts(epi, mtch_mtrx, scores=primitive_scores,
@@ -121,6 +131,8 @@ ngtvs <- c('^standard', '^conventional', '^typical$',
 mtch_mtrx <- matchMatrix(c(pstvs, ngtvs))
 oddness_counts <- colSums(mtch_mtrx)
 oddness_scores <- senseScores(mtch_mtrx, pstvs, ngtvs)
+epi$oddness <- NA
+epi[rownames(oddness_scores), 'oddness'] <- oddness_scores$scr1
 oddness_scores$pepi <- epi[rownames(oddness_scores), 'pepi']
 oddness_scores$epi <- epi[rownames(oddness_scores), 'epi']
 writeOutExampleTexts(epi, mtch_mtrx, scores=oddness_scores,
@@ -136,7 +148,9 @@ synonyms_res <- list('hermit'=list('scores'=hermit_scores, 'wrd_counts'=hermit_c
                      'specialist'=list('scores'=specialist_scores, 'wrd_counts'=specialist_counts),
                      'primitive'=list('scores'=primitive_scores, 'wrd_counts'=primitive_counts),
                      'oddness'=list('scores'=oddness_scores, 'wrd_counts'=oddness_counts))
-save(synonyms_res, file=file.path(output_dir, 'res.RData'))
+save(synonyms_res, file=file.path(output_dir, 'test_res.RData'))
+syn_epi <- epi
+save(syn_epi, file=file.path(output_dir, 'res.RData'))
 
 # END
 cat(paste0('\nStage `synonyms` finished at [', Sys.time(), ']\n'))

@@ -18,7 +18,6 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     }
     # select NULL model
     ms <- list()
-    ms[[1]] <- lm(y~1, data=data)
     rndm_effcts <- c('(1|genus)', '(1|family)',
                      '(1|order)', '(1|family/genus)',
                      '(1|order/family)', '(1|order/genus)',

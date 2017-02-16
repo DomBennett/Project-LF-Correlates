@@ -1,6 +1,6 @@
 loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
   res <- data.frame(grp=NA, n=NA, x=mtrc, y=NA, frmla=NA,
-                    int=NA, slp=NA, AIC=NA, p=NA)
+                    int=NA, slp=NA, NULL_AIC=NA, AIC=NA, p=NA)
   for(nm_vrbl in vrbls) {
     cat('.... [', nm_vrbl, ']\n')
     x <- mdl_data[[nm_vrbl]]
@@ -9,58 +9,43 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     genus <- as.character(mdl_data[['genus']])
     family <- as.character(mdl_data[['family']])
     order <- as.character(mdl_data[['order']])
-    #pull <- genus == family & family == order
     data <- data.frame(y, x, nm, genus, family, order)
     data[['x']][data[['x']] == -Inf] <- NA
     data[['x']][data[['x']] == Inf] <- NA
-    #data <- data[!pull, ]
     data <- na.omit(data)
-    if(nrow(data) < 200) {
+    if(nrow(data) < 50) {
       next
     }
     # select NULL model
-    ms <- vector("list", length=7)
+    ms <- list()
     ms[[1]] <- lm(y~1, data=data)
-    ms[[2]] <- lmer(y~1+(1|genus), data=data, REML=FALSE)
-    ms[[3]] <- lmer(y~1+(1|family), data=data, REML=FALSE)
-    ms[[4]] <- lmer(y~1+(1|order), data=data, REML=FALSE)
-    ms[[5]] <- lmer(y~1+(1|family/genus), data=data, REML=FALSE)
-    ms[[6]] <- lmer(y~1+(1|order/family), data=data, REML=FALSE)
-    ms[[7]] <- lmer(y~1+(1|order/genus), data=data, REML=FALSE)
-    # three level effects takes too long
-    nulli <- which.min(sapply(ms, AIC))
-    m0 <- ms[[which.min(sapply(ms, AIC))]]
+    rndm_effcts <- c('(1|genus)', '(1|family)',
+                     '(1|order)', '(1|family/genus)',
+                     '(1|order/family)', '(1|order/genus)',
+                     '(x|genus)', '(x|family)',
+                     '(x|order)', '(x|family/genus)',
+                     '(x|order/family)', '(x|order/genus)')
+    drp_bool <- rep(NA, length(rndm_effcts) + 1)
+    drp_bool[1] <- TRUE
+    ms <- vector('list', length=length(rndm_effcts) + 1)
+    ms[[1]] <- lm(y~1, data=data)
+    for(i in 1:length(rndm_effcts)) {
+      frml <- paste0('y~1+', rndm_effcts[[i]])
+      options(warn=2)
+      m <- try(lmer(frml, data=data, REML=FALSE),
+               silent=TRUE)
+      drp_bool[i+1] <- is(m)[[1]] != 'try-error'
+      ms[[i+1]] <- m
+    }
+    nulli <- which(drp_bool)[which.min(sapply(ms[drp_bool], AIC))]
+    m0 <- ms[[nulli]]
     rm(ms)
     if(nulli == 1) {
       # no need for random effects
       m1 <- lm(y~x, data=data)
-    } else if(nulli == 2) {
-      # select fitted, shared slope
-      m1 <- suppressWarnings(lmer(y~x+(1|genus), data=data, REML=FALSE))
-      # select fitted, changing slope
-      m2 <- try(suppressWarnings(lmer(y~x+(x|genus), data=data, REML=FALSE)), silent=TRUE)
-    } else if(nulli == 3) {
-      m1 <- suppressWarnings(lmer(y~x+(1|family), data=data, REML=FALSE))
-      m2 <- try(suppressWarnings(lmer(y~x+(x|family), data=data, REML=FALSE)), silent=TRUE)
-    } else if(nulli == 4) {
-      m1 <- suppressWarnings(lmer(y~x+(1|order), data=data, REML=FALSE))
-      m2 <- try(suppressWarnings(lmer(y~x+(x|order), data=data, REML=FALSE)), silent=TRUE)
-    } else if(nulli == 5) {
-      m1 <- suppressWarnings(lmer(y~x+(1|family/genus), data=data, REML=FALSE))
-      m2 <- try(suppressWarnings(lmer(y~x+(x|family/genus), data=data, REML=FALSE)), silent=TRUE)
-    } else if(nulli == 6) {
-      m1 <- suppressWarnings(lmer(y~x+(1|order/family), data=data, REML=FALSE))
-      m2 <- try(suppressWarnings(lmer(y~x+(x|order/family), data=data, REML=FALSE)), silent=TRUE)
     } else {
-      m1 <- suppressWarnings(lmer(y~x+(1|order/genus), data=data, REML=FALSE))
-      m2 <- try(suppressWarnings(lmer(y~x+(x|order/genus), data=data, REML=FALSE)), silent=TRUE)
-    }
-    if(nulli > 1 & is(m2)[[1]] != 'try-error') {
-      # choose best model between m1 and m2
-      anvres <- anova(m2, m1)
-      if(anvres$`Pr(>Chisq)`[2] < 0.05) {
-        m1 <- m2
-      }
+      frml <- paste0('y~x+', rndm_effcts[[nulli-1]])
+      m1 <- lmer(frml, data=data, REML=FALSE)
     }
     aics <- AIC(m0, m1)[,2]
     sm0 <- summary(m0)
@@ -85,10 +70,14 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     } else {
       p <- ' '
     }
-    int <- sm1$coefficients[1,1]
-    slp <- sm1$coefficients[2,1]
+    if(!is.numeric(data$y)) {
+      int <- slp <- NA
+    } else {
+      int <- sm1$coefficients[1,1]
+      slp <- sm1$coefficients[2,1]
+    }
     tmp <- data.frame(grp=grp, n=nrow(data), x=mtrc, y=nm_vrbl,
-                      frmla=frmla, int=int, slp=slp,
+                      frmla=frmla, int=int, slp=slp, NULL_AIC=aics[1],
                       AIC=aics[2], p=p)
     res <- rbind(res, tmp)
   }

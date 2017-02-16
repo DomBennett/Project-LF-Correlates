@@ -8,7 +8,7 @@ library(lme4)
 source(file.path('tools', 'lmem_tools.R'))
 
 # DIRS
-input_dir <- "8_vrbls"
+input_dir <- "7_pack"
 rslts_dir <- 'results'
 if(!file.exists(rslts_dir)) {
   dir.create(rslts_dir)
@@ -18,6 +18,9 @@ input_file <- file.path(input_dir, "res.RData")
 # LOAD
 load(input_file)
 
+# SPP DATA
+epi <- epi[epi[['n']] == 1, ]
+
 # WRITE OUT VARIABLE INFO
 nobs <- rep(NA, length(all_vrbls))
 names(nobs) <- all_vrbls
@@ -26,30 +29,21 @@ for(vrbl in all_vrbls) {
 }
 write.csv(data.frame(all_vrbls, nobs), file=file.path(rslts_dir, 'variable_info.csv'))
 
-
-# DROP NON-CONTS VRBLS
-all_vrbls <- all_vrbls[!all_vrbls %in% c("Volancy", "Fossoriality",
-                                         "Foraging environment", "Daily activity")]
-
 # LOOPS
 cat('Looping through different tests....\n')
 # all groups
-mdl_res <- loopThroughTests(mdl_data=epi, mtrc='pepi', vrbls=
-                              c("Category of extinction (log)", "No. habitats (log)", "No. countries (log)" ))
-epi_res <- loopThroughTests(mdl_data=epi, mtrc='epi', vrbls=
-                              c("Category of extinction (log)", "No. habitats (log)", "No. countries (log)" ),
-                            grp='Mammalia & Aves')
-mdl_res <- rbind(mdl_res, epi_res)
-rm(epi_res)
-# mammals
-mdl_data <- epi[as.character(epi[['txnmcgrp']]) == 'mammals', ]
-mml_res <- loopThroughTests(mdl_data=mdl_data, mtrc='pepi', vrbls=all_vrbls,
-                            grp='Mammalia')
-mdl_res <- rbind(mdl_res, mml_res)
-mml_res <- loopThroughTests(mdl_data=mdl_data, mtrc='epi', vrbls=all_vrbls,
-                            grp='Mammalia')
-mdl_res <- rbind(mdl_res, mml_res)
-rm(mml_res)
+vrbls <- c("cate", "nhbbts_log", "ncntrs_log", "volancy",
+           "fossoriallity", "foraging_environment",
+           "daily_activity", "maximum_lifespan_yr_log",
+           "mass_g_log", "BMR_log")
+mdl_res <- loopThroughTests(mdl_data=epi, mtrc='pepi', vrbls=vrbls)
+mdl_data <- epi[!is.na(epi$epi), ]
+pepi_res <- loopThroughTests(mdl_data=mdl_data, mtrc='pepi', vrbls=vrbls,
+                            grp='EPI dataset')
+epi_res <- loopThroughTests(mdl_data=mdl_data, mtrc='epi', vrbls=vrbls,
+                            grp='EPI dataset')
+mdl_res <- rbind(mdl_res, pepi_res, epi_res)
+rm(epi_res, pepi_res)
 # birds
 mdl_data <- epi[as.character(epi[['txnmcgrp']]) == 'birds', ]
 avs_res <- loopThroughTests(mdl_data=mdl_data, mtrc='pepi', vrbls=all_vrbls,

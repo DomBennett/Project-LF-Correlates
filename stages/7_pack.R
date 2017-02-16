@@ -60,12 +60,21 @@ cat('Adding mammal data.....\n')
 pan <- read.delim (file=pan_file, na.strings=-999,
                    stringsAsFactors=FALSE)
 # add new columns to epi
-vrbls <- c('X5.1_AdultBodyMass_g', "X1.1_ActivityCycle" , "X22.1_HomeRange_km2",
-           "X12.1_HabitatBreadth", "X10.1_PopulationGrpSize", "X10.2_SocialGrpSize",
-           "X6.2_TrophicLevel", "X6.1_DietBreadth", "X9.1_GestationLen_d",
-           "X15.1_LitterSize", "X23.1_SexualMaturityAge_d", "X5.2_BasalMetRateMass_g",
-           "X17.1_MaxLongevity_m", "X14.1_InterBirthInterval_d", "X28.2_Temp_Mean_01degC",
-           "X28.1_Precip_Mean_mm")
+vrbls <- c("X1.1_ActivityCycle", "X5.1_AdultBodyMass_g", "X8.1_AdultForearmLen_mm",   
+           "X13.1_AdultHeadBodyLen_mm", "X2.1_AgeatEyeOpening_d", "X3.1_AgeatFirstBirth_d",
+           "X18.1_BasalMetRate_mLO2hr", "X5.2_BasalMetRateMass_g", "X6.1_DietBreadth",
+           "X7.1_DispersalAge_d", "X9.1_GestationLen_d", "X12.1_HabitatBreadth", "X22.1_HomeRange_km2",
+           "X22.2_HomeRange_Indiv_km2", "X14.1_InterBirthInterval_d", "X15.1_LitterSize",
+           "X16.1_LittersPerYear", "X17.1_MaxLongevity_m", "X5.3_NeonateBodyMass_g",
+           "X13.2_NeonateHeadBodyLen_mm", "X21.1_PopulationDensity_n.km2", "X10.1_PopulationGrpSize",
+           "X23.1_SexualMaturityAge_d", "X10.2_SocialGrpSize", "X24.1_TeatNumber",
+           "X12.2_Terrestriality", "X6.2_TrophicLevel", "X25.1_WeaningAge_d", "X5.4_WeaningBodyMass_g",
+           "X13.3_WeaningHeadBodyLen_mm", "X5.5_AdultBodyMass_g_EXT", "X16.2_LittersPerYear_EXT",
+           "X5.6_NeonateBodyMass_g_EXT", "X5.7_WeaningBodyMass_g_EXT", "X26.1_GR_Area_km2",
+           "X26.2_GR_MaxLat_dd", "X26.3_GR_MinLat_dd", "X26.4_GR_MRLat_dd", "X26.5_GR_MaxLong_dd",
+           "X26.6_GR_MinLong_dd", "X26.7_GR_MRLong_dd", "X27.1_HuPopDen_Min_n.km2",
+           "X27.2_HuPopDen_Mean_n.km2", "X27.3_HuPopDen_5p_n.km2", "X27.4_HuPopDen_Change",
+           "X28.1_Precip_Mean_mm", "X28.2_Temp_Mean_01degC", "X30.1_AET_Mean_mm", "X30.2_PET_Mean_mm" )
 for(vrbl in vrbls) {
   epi[[vrbl]] <- NA
 }
@@ -87,6 +96,7 @@ for(vrbl in vrbls) {
 species_names <- bmr[['species']]
 row_i <- which(epi[['txnmcgrp']] %in% c('mammals', 'birds'))
 epi <- addToEPI(epi, vrbls, bmr, species_names, row_i)
+all_vrbls <- c(all_vrbls, vrbls)
 # categorical
 vrbls <- c('volancy', 'fossoriallity', 'foraging_environment',
            'daily_activity')
@@ -97,14 +107,20 @@ epi <- addToEPI(epi, vrbls, bmr, species_names, row_i, categorical=TRUE)
 all_vrbls <- c(all_vrbls, vrbls)
 cat('Done.\n')
 
+all_vrbls <- sub('_log', "", all_vrbls)
+
 # LOG
 cat('Log all variables that are not normal....\n')
 for(i in 1:length(all_vrbls)) {
   vrbl <- all_vrbls[i]
   obs <- epi[[vrbl]]
   obs <- obs[!is.na(obs)]
-  bool <- sapply(obs, is.numeric)
-  if(!all(bool)) {
+  bool <- all(sapply(obs, is.numeric))
+  if(bool) {
+    bool <- bool & length(unique(round(obs))) > 20
+  }
+  bool <- bool | vrbl == 'BMR'
+  if(!bool) {
     next
   }
   min_z <- abs((min(obs) - mean(obs))/sd(obs))

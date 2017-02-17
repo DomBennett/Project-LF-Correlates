@@ -25,8 +25,24 @@ hbbts <- hbbts[whbbts]
 cds <- cds[whbbts]
 epi <- epi[whbbts, ]
 
+# ADD ROCKY AREAS
+hbbt_cds <- rbind(hbbt_cds,
+                  data.frame('type'='Rocky Areas [e.g. inland cliffs, mountain peaks]',
+                             'type_code'='6',
+                             'subtype'='Rocky Areas [e.g. inland cliffs, mountain peaks]',
+                             'subtype_code'='6'))
+
 
 # HABITAT SETS AND INDEX
+# by terrestriality
+terrestrial_types <- as.character(1:8)
+marine_types <- as.character(9:13)
+cds_of_interest <- list('terrestrial'=unlist(sapply(terrestrial_types,
+                                                    function(x) hbbt_cds[['subtype_code']][hbbt_cds[['type_code']] == x])),
+                        'marine'=unlist(sapply(marine_types,
+                                               function(x) hbbt_cds[['subtype_code']][hbbt_cds[['type_code']] == x])))
+terrestriality <- hbbtPA(cds_of_interest)
+epi <- cbind(epi, terrestriality)
 # by type
 cat('By type....\n')
 cds_of_interest <- sapply(unique(hbbt_cds[['type_code']]),

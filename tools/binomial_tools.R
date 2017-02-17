@@ -10,13 +10,14 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     family <- as.character(mdl_data[['family']])
     order <- as.character(mdl_data[['order']])
     data <- data.frame(y, x, nm, genus, family, order)
-    data[['x']][data[['x']] == -Inf] <- NA
-    data[['x']][data[['x']] == Inf] <- NA
+    data[['y']][data[['y']] == -Inf] <- NA
+    data[['y']][data[['y']] == Inf] <- NA
     data <- na.omit(data)
     if(nrow(data) < 50) {
       next
     }
-    if(sum(data$y) < 10) {
+    if(sum(data$y == data$y[1]) <= 20 |
+       sum(data$y == data$y[1]) >= nrow(data)-20) {
       next
     }
     # select NULL model
@@ -51,7 +52,11 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
       m1 <- glm(y~x, data=data, family='poisson')
     } else {
       frml <- paste0('y~x+', rndm_effcts[[nulli-1]])
-      m1 <- glmer(frml, data=data, family='poisson')
+      m1 <- try(glmer(frml, data=data, family='poisson'),
+                silent=TRUE)
+      if(is(m)[[1]] == 'try-error') {
+        next
+      }
     }
     aics <- AIC(m0, m1)[,2]
     sm0 <- summary(m0)

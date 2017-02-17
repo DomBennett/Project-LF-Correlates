@@ -22,8 +22,8 @@ load(hbbts_file)
 
 # VRBLS
 epi$cate_bn <- epi$cate > 0
-vrbls <- c(colnames(hbbts_epi)[!colnames(hbbts_epi) %in% colnames(epi)],
-           'volancy', 'cate_bn')
+hbbts <- colnames(hbbts_epi)[!colnames(hbbts_epi) %in% colnames(epi)]
+vrbls <- c('volancy', 'cate_bn', 'terrestrial', 'marine')
 
 # MERGE
 i <- match(epi$txid, hbbts_epi$txid)
@@ -34,8 +34,12 @@ rm(hbbts_epi)
 # SPP DATA
 epi <- epi[epi[['n']] == 1, ]
 
+# MDL DATASETS
+trrstrl <- epi[epi$terrestrial == 1, ]
+marine <- epi[epi$marine == 1, ]
+
 # LOOPS
-cat('Looping through different tests....\n')
+cat('Looping through binomial tests....\n')
 # all groups
 mdl_res <- loopThroughTests(mdl_data=epi, mtrc='pepi', vrbls=vrbls)
 # EPI dataset
@@ -57,11 +61,74 @@ mdl_res <- rbind(mdl_res, avs_res)
 rm(avs_res)
 # mammals
 mdl_data <- epi[as.character(epi[['txnmcgrp']]) == 'mammals', ]
-mml_res <- loopThroughTests(mdl_data=mdl_data, mtrc='pepi', vrbls=vrbls[1:2],
+mml_res <- loopThroughTests(mdl_data=mdl_data, mtrc='pepi', vrbls=vrbls,
                             grp='Mammalia')
 mdl_res <- rbind(mdl_res, mml_res)
 mml_res <- loopThroughTests(mdl_data=mdl_data, mtrc='epi', vrbls=vrbls,
                             grp='Mammalia')
+mdl_res <- rbind(mdl_res, mml_res)
+rm(mmL_res)
+cat('Done.\n')
+
+# LOOPS
+cat('Looping through terrestrial tests....\n')
+# all groups
+mdl_res <- loopThroughTests(mdl_data=trrstrl, mtrc='pepi', vrbls=hbbts)
+# EPI dataset
+mdl_data <- trrstrl[!is.na(trrstrl$epi), ]
+pepi_res <- loopThroughTests(mdl_data=mdl_data, mtrc='pepi', vrbls=hbbts,
+                             grp='EPI dataset (terrestrial)')
+epi_res <- loopThroughTests(mdl_data=mdl_data, mtrc='epi', vrbls=hbbts,
+                            grp='EPI dataset (terrestrial)')
+mdl_res <- rbind(mdl_res, pepi_res, epi_res)
+rm(epi_res, pepi_res)
+# birds
+mdl_data <- trrstrl[as.character(trrstrl[['txnmcgrp']]) == 'birds', ]
+avs_res <- loopThroughTests(mdl_data=mdl_data, mtrc='pepi', vrbls=hbbts,
+                            grp='Aves (terrestrial)')
+mdl_res <- rbind(mdl_res, avs_res)
+avs_res <- loopThroughTests(mdl_data=mdl_data, mtrc='epi', vrbls=hbbts,
+                            grp='Aves (terrestrial)')
+mdl_res <- rbind(mdl_res, avs_res)
+rm(avs_res)
+# mammals
+mdl_data <- trrstrl[as.character(trrstrl[['txnmcgrp']]) == 'mammals', ]
+mml_res <- loopThroughTests(mdl_data=mdl_data, mtrc='pepi', vrbls=hbbts,
+                            grp='Mammalia (terrestrial)')
+mdl_res <- rbind(mdl_res, mml_res)
+mml_res <- loopThroughTests(mdl_data=mdl_data, mtrc='epi', vrbls=hbbts,
+                            grp='Mammalia (terrestrial)')
+mdl_res <- rbind(mdl_res, mml_res)
+rm(mmL_res)
+cat('Done.\n')
+
+cat('Looping through marine tests....\n')
+# all groups
+mdl_res <- loopThroughTests(mdl_data=marine, mtrc='pepi', vrbls=hbbts)
+# EPI dataset
+mdl_data <- marine[!is.na(marine$epi), ]
+pepi_res <- loopThroughTests(mdl_data=mdl_data, mtrc='pepi', vrbls=hbbts,
+                             grp='EPI dataset (marine)')
+epi_res <- loopThroughTests(mdl_data=mdl_data, mtrc='epi', vrbls=hbbts,
+                            grp='EPI dataset (marine)')
+mdl_res <- rbind(mdl_res, pepi_res, epi_res)
+rm(epi_res, pepi_res)
+# birds
+mdl_data <- marine[as.character(marine[['txnmcgrp']]) == 'birds', ]
+avs_res <- loopThroughTests(mdl_data=mdl_data, mtrc='pepi', vrbls=hbbts,
+                            grp='Aves (marine)')
+mdl_res <- rbind(mdl_res, avs_res)
+avs_res <- loopThroughTests(mdl_data=mdl_data, mtrc='epi', vrbls=hbbts,
+                            grp='Aves (marine)')
+mdl_res <- rbind(mdl_res, avs_res)
+rm(avs_res)
+# mammals
+mdl_data <- marine[as.character(marine[['txnmcgrp']]) == 'mammals', ]
+mml_res <- loopThroughTests(mdl_data=mdl_data, mtrc='pepi', vrbls=hbbts,
+                            grp='Mammalia (marine)')
+mdl_res <- rbind(mdl_res, mml_res)
+mml_res <- loopThroughTests(mdl_data=mdl_data, mtrc='epi', vrbls=hbbts,
+                            grp='Mammalia (marine)')
 mdl_res <- rbind(mdl_res, mml_res)
 rm(mmL_res)
 cat('Done.\n')

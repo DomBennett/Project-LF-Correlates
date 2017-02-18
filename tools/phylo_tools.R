@@ -58,10 +58,19 @@ loopThroughTests <- function(mtrc) {
     }
     to_drp <- mammal_tree$tip.label[!mammal_tree$tip.label %in% rownames(data)]
     tree <- drop.tip(mammal_tree, to_drp)
-    m0 <- gls(pepi~1, data=data, method="ML",
-              correlation=corPagel(value=1, phy=tree, fixed=FALSE))
-    m1 <- gls(pepi~vrbl, data=data, method="ML",
-              correlation=corPagel(value=1, phy=tree, fixed=FALSE))
+    options(warn=2)
+    m0 <- try(gls(pepi~1, data=data, method="ML",
+              correlation=corPagel(value=1, phy=tree, fixed=FALSE)), silent=TRUE)
+    if(is(m0)[[1]] == 'try-error') {
+      skipMdl(fl)
+      next
+    }
+    m1 <- try(gls(pepi~vrbl, data=data, method="ML",
+              correlation=corPagel(value=1, phy=tree, fixed=FALSE)), silent=TRUE)
+    if(is(m1)[[1]] == 'try-error') {
+      skipMdl(fl)
+      next
+    }
     sm <- summary(m1)
     anvres <- anova(m0, m1)
     p_val <- anvres[['p-value']][2]

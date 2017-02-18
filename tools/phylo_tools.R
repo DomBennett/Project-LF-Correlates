@@ -1,3 +1,23 @@
+# record models
+cache_dir <- 'caches'
+if(!file.exists(cache_dir)) {
+  dir.create(cache_dir)
+}
+cache_dir <- file.path('caches', 'phylo')
+if(!file.exists(cache_dir)) {
+  dir.create(cache_dir)
+}
+if(!file.exists(file.path(cache_dir, 'skip.RData'))) {
+  skip_mdl <- NULL
+  save(skip_mdl, file=file.path(cache_dir, 'skip.RData'))
+} else {
+  load(file=file.path(cache_dir, 'skip.RData'))
+}
+skipMdl <- function(fl) {
+  skip_mdl <<- c(skip_mdl, fl)
+  save(skip_mdl, file=file.path(cache_dir, 'skip.RData'))
+}
+
 getMdlData <- function(vrbls, mtrc='pepi') {
   mtrc <- epi[[mtrc]]
   data <- data.frame(mtrc)
@@ -15,6 +35,15 @@ loopThroughTests <- function(mtrc) {
   res <- data.frame(n=NA, x=mtrc, y=NA, int=NA, slp=NA,
                     AIC=NA, null=NA, p=NA)
   for(nm_vrbl in vrbls) {
+    fl <- file.path(cache_dir, paste0(mtrc, '_', nm_vrbl, '.RData'))
+    if(fl %in% skip_mdl) {
+      next
+    }
+    if(file.exists(fl)) {
+      load(fl)
+      res <- rbind(res, tmp)
+      next
+    }
     cat('....[', nm_vrbl, ']\n')
     vrbl <- epi[[nm_vrbl]]
     pepi <- epi[[mtrc]]
@@ -24,6 +53,7 @@ loopThroughTests <- function(mtrc) {
     data[['vrbl']][data[['vrbl']] == Inf] <- NA
     data <- na.omit(data)
     if(nrow(data) < 20) {
+      skipMdl(fl)
       next
     }
     to_drp <- mammal_tree$tip.label[!mammal_tree$tip.label %in% rownames(data)]
@@ -52,6 +82,7 @@ loopThroughTests <- function(mtrc) {
                       int=int, slp=slp,
                       AIC=AIC(m1), null=AIC(m0),
                       p=p)
+    save(tmp, file=fl)
     res <- rbind(res, tmp)
   }
   res[-1, ]

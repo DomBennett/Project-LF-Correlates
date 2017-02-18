@@ -1,7 +1,37 @@
+# record models
+cache_dir <- 'caches'
+if(!file.exists(cache_dir)) {
+  dir.create(cache_dir)
+}
+cache_dir <- file.path('caches', 'bnmls')
+if(!file.exists(cache_dir)) {
+  dir.create(cache_dir)
+}
+if(!file.exists(file.path(cache_dir, 'skip.RData'))) {
+  skip_mdl <- NULL
+  save(skip_mdl, file=file.path(cache_dir, 'skip.RData'))
+} else {
+  load(file=file.path(cache_dir, 'skip.RData'))
+}
+skipMdl <- function(fl) {
+  skip_mdl <<- c(skip_mdl, fl)
+  save(skip_mdl, file=file.path(cache_dir, 'skip.RData'))
+}
+
 loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
   res <- data.frame(grp=NA, n=NA, x=mtrc, y=NA, frmla=NA,
                     int=NA, slp=NA, NULL_AIC=NA, AIC=NA, p=NA)
   for(nm_vrbl in vrbls) {
+    fl <- file.path(cache_dir, paste0(mtrc, '_', nm_vrbl, '_',
+                                      grp, '.RData'))
+    if(fl %in% skip_mdl) {
+      next
+    }
+    if(file.exists(fl)) {
+      load(fl)
+      res <- rbind(res, tmp)
+      next
+    }
     cat('.... [', nm_vrbl, ']\n')
     y <- mdl_data[[nm_vrbl]]
     x <- mdl_data[[mtrc]]
@@ -14,10 +44,12 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     data[['y']][data[['y']] == Inf] <- NA
     data <- na.omit(data)
     if(nrow(data) < 50) {
+      skipMdl(fl)
       next
     }
     if(sum(data$y == data$y[1]) <= 20 |
        sum(data$y == data$y[1]) >= nrow(data)-20) {
+      skipMdl(fl)
       next
     }
     # select NULL model
@@ -42,6 +74,7 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
       ms[[i+1]] <- m
     }
     if(sum(drp_bool) == 0) {
+      skipMdl(fl)
       next
     }
     nulli <- which(drp_bool)[which.min(sapply(ms[drp_bool], AIC))]
@@ -54,7 +87,8 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
       frml <- paste0('y~x+', rndm_effcts[[nulli-1]])
       m1 <- try(glmer(frml, data=data, family='poisson'),
                 silent=TRUE)
-      if(is(m)[[1]] == 'try-error') {
+      if(is(m1)[[1]] == 'try-error') {
+        skipMdl(fl)
         next
       }
     }

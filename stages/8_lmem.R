@@ -35,7 +35,8 @@ cat('Looping through different tests....\n')
 vrbls <- c("cate", "nhbbts_log", "ncntrs_log", "volancy",
            "fossoriallity", "foraging_environment",
            "daily_activity", "maximum_lifespan_yr_log",
-           "mass_g_log", "BMR_log")
+           "mass_g_log", "BMR_log", "hermit", "lethary", "refugium",
+           "specialist", "primitive", "oddness" )
 mdl_res <- loopThroughTests(mdl_data=epi, mtrc='pepi', vrbls=vrbls)
 mdl_data <- epi[!is.na(epi$epi), ]
 pepi_res <- loopThroughTests(mdl_data=mdl_data, mtrc='pepi', vrbls=vrbls,

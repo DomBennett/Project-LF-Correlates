@@ -125,6 +125,7 @@ loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
     tmp <- data.frame(grp=grp, n=nrow(data), x=mtrc, y=nm_vrbl,
                       frmla=frmla, int=int, slp=slp, NULL_AIC=aics[1],
                       AIC=aics[2], p=p)
+    save(tmp, file=fl)
     res <- rbind(res, tmp)
   }
   res[-1, ]

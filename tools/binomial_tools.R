@@ -18,11 +18,17 @@ skipMdl <- function(fl) {
   save(skip_mdl, file=file.path(cache_dir, 'skip.RData'))
 }
 
+fileFriendly <- function(wrd) {
+  gsub("/", '_', wrd)
+}
+
 loopThroughTests <- function(mdl_data, vrbls, mtrc, grp='All') {
   res <- data.frame(grp=NA, n=NA, x=mtrc, y=NA, frmla=NA,
                     int=NA, slp=NA, NULL_AIC=NA, AIC=NA, p=NA)
   for(nm_vrbl in vrbls) {
-    fl <- file.path(cache_dir, paste0(mtrc, '_', nm_vrbl, '_',
+    fl <- file.path(cache_dir, paste0(mtrc, '_',
+                                      fileFriendly(nm_vrbl),
+                                      '_',
                                       grp, '.RData'))
     if(fl %in% skip_mdl) {
       next

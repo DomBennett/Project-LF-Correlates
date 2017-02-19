@@ -1,3 +1,6 @@
+# ensure 'is'
+library(methods)
+
 # record models
 cache_dir <- 'caches'
 if(!file.exists(cache_dir)) {

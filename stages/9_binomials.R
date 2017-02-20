@@ -21,7 +21,7 @@ load(input_file)
 load(hbbts_file)
 
 # VRBLS
-epi$cate_bn <- epi$cate > 0
+epi$cate_bn <- as.numeric(epi$cate > 0)
 epi$volancy_bn <- as.character(epi$volancy) == 'volant'
 epi$volancy_bn <- as.numeric(epi$volancy_bn)
 hbbts <- colnames(hbbts_epi)[!colnames(hbbts_epi) %in% colnames(epi)]
